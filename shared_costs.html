@@ -1,0 +1,2088 @@
+```html
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إدارة التكاليف المشتركة</title>
+<style>
+:root{
+  --od-primary:#017E84;--od-primary-h:#016a70;--od-primary-l:#eef7f8;
+  --od-bg:#f4f5f8;--od-border:#dee2e6;--od-text:#374151;--od-head:#f9fafb;--od-dark:#3d434d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--od-bg);direction:rtl;color:var(--od-text)}
+.topbar{background:var(--od-dark);color:#fff;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.topbar h1{font-size:18px;display:flex;align-items:center;gap:9px}
+.topbar .tab-now{font-size:12px;color:#b9c0c9;background:rgba(255,255,255,.1);padding:4px 12px;border-radius:3px}
+.topbar-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.last-save{font-size:11px;color:#cfe3f7;background:rgba(255,255,255,.12);padding:5px 10px;border-radius:3px;white-space:nowrap}
+nav{background:#fff;padding:0 14px;display:flex;gap:2px;border-bottom:2px solid var(--od-border);overflow-x:auto;position:sticky;top:0;z-index:80;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+nav button{padding:13px 16px;border:none;background:none;cursor:pointer;font-size:13.5px;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;white-space:nowrap;transition:.15s}
+nav button:hover{color:var(--od-primary);background:var(--od-primary-l)}
+nav button.active{color:var(--od-primary);border-bottom-color:var(--od-primary);background:var(--od-primary-l)}
+.container{padding:18px 22px;max-width:1600px;margin:0 auto}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.main-title{font-size:19px;color:var(--od-text);margin-bottom:14px;padding-right:10px;border-right:4px solid var(--od-primary)}
+.card{background:#fff;border:1px solid var(--od-border);border-radius:6px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:14px;font-weight:700;color:var(--od-text);border-bottom:1px solid var(--od-border);padding-bottom:8px;margin-bottom:12px}
+.form-row{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.form-group{flex:1;min-width:140px}
+.form-group label{display:block;margin-bottom:4px;font-weight:600;color:#6b7280;font-size:12px}
+.form-group input,.form-group select{width:100%;padding:7px 10px;border:1px solid #ccc;border-radius:3px;font-size:13.5px;text-align:center;background:#fff}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--od-primary);box-shadow:0 0 0 2px rgba(1,126,132,.15)}
+.btn{padding:7px 16px;border:1px solid transparent;border-radius:3px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--od-primary);color:#fff}.btn-primary:hover{background:var(--od-primary-h)}
+.btn-success{background:#28a745;color:#fff}.btn-success:hover{background:#218838}
+.btn-danger{background:#dc3545;color:#fff}.btn-danger:hover{background:#c82333}
+.btn-warning{background:#f39c12;color:#fff}.btn-warning:hover{background:#d68910}
+.btn-secondary{background:#fff;border:1px solid var(--od-border);color:var(--od-text)}.btn-secondary:hover{background:#f0f0f0}
+.btn-gray{background:#eef1f5;color:var(--od-text);border:1px solid var(--od-border)}.btn-gray:hover{background:#e0e6ee}
+.btn-light{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3)}.btn-light:hover{background:rgba(255,255,255,.26)}
+.btn-sm{padding:4px 9px;font-size:12px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th{background:var(--od-head);color:#4b5563;padding:8px 7px;font-size:11.5px;font-weight:700;text-align:center;white-space:nowrap;border-bottom:2px solid var(--od-border)}
+td{padding:7px;border:1px solid #eef0f3;text-align:center;font-size:12.5px}
+tr:nth-child(even){background:#fafbfc}tr:hover{background:#eef6f7}
+.total-row{background:#eef2f7!important;font-weight:700}
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:10.5px;font-weight:700}
+.badge-green{background:#d1e7dd;color:#0f5132}
+.badge-yellow{background:#fff3cd;color:#856404}
+.badge-red{background:#f8d7da;color:#721c24}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.stat-card{background:#fff;border:1px solid var(--od-border);border-radius:6px;padding:16px;text-align:center;border-top:3px solid var(--od-primary)}
+.stat-card.blue{border-top-color:#0d6efd}.stat-card.green{border-top-color:#28a745}
+.stat-card.yellow{border-top-color:#f39c12}.stat-card.red{border-top-color:#dc3545}.stat-card.purple{border-top-color:#7c3aed}
+.stat-value{font-size:20px;font-weight:700}.stat-label{font-size:12px;color:#6b7280;margin-top:3px}
+.alloc-table th{font-size:10px;padding:5px 3px}
+.alloc-table td{padding:5px 3px;font-size:11px}
+.alloc-table .sub-header{background:#dce9f5!important;color:#1e3a5f;font-size:10px;padding:4px}
+.alloc-table .remaining{background:#f4f6f8}
+.alloc-table .amount{background:#d1e7dd;font-weight:700}
+.alloc-table .pos-name{max-width:110px;min-width:85px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alloc-table .cell-hint{font-size:8px;margin-top:2px}
+.pct-input,.amt-input,.num-input{width:80px;padding:4px;border:1px solid #ccc;border-radius:3px;text-align:center;font-size:12px;background:#fff}
+.alloc-table .pct-input{width:52px;padding:3px 2px;font-size:11px}
+.num-input{width:90px;font-size:14px;font-weight:700}
+.alloc-table .num-input{width:56px;padding:3px 2px;font-size:11px}
+.legend{font-size:11px;color:#6b7280;margin-top:8px;line-height:1.9}
+.legend b{color:var(--od-primary)}
+.gap-alert{border-right:4px solid #dc3545;background:#fdf2f3;padding:14px 16px;border-radius:6px;margin-bottom:14px}
+.gap-alert h3{color:#dc3545;margin-bottom:8px;font-size:15px}
+.proposal-box{padding:16px;background:#fafbfc;border:1px solid var(--od-border);border-radius:6px;margin-bottom:14px}
+.proposal-box h3{color:var(--od-primary);margin-bottom:10px;font-size:14px}
+.cell-hint{font-size:9px;margin-top:2px}
+.info-box{background:#eef4fb;border-right:4px solid #0d6efd;padding:10px 14px;border-radius:6px;font-size:12.5px;margin-bottom:14px;line-height:1.9}
+.warn-box{background:#fff8e6;border-right:4px solid #f39c12;padding:10px 14px;border-radius:6px;font-size:12.5px;margin-bottom:14px;line-height:1.9}
+.budget-cell{font-size:12px}
+.edit-highlight{border:2px solid #f39c12!important;background:#fffdf5!important}
+.notes-input{width:100%;border:1px solid #ccc;border-radius:3px;padding:4px;text-align:center;font-size:12px}
+.actions-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.report-card{background:#fff;border:1px solid var(--od-border);border-radius:6px;padding:18px;cursor:pointer;transition:.15s;text-align:right}
+.report-card:hover{border-color:var(--od-primary);box-shadow:0 3px 12px rgba(1,126,132,.15);transform:translateY(-2px)}
+.report-card .ri{font-size:26px;margin-bottom:8px}
+.report-card h3{font-size:14px;color:var(--od-primary);margin-bottom:6px}
+.report-card p{font-size:11.5px;color:#6b7280;line-height:1.7}
+.report-card .open-hint{margin-top:10px;font-size:12px;font-weight:700;color:#fff;background:var(--od-primary);display:inline-block;padding:4px 14px;border-radius:3px}
+.report-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:#fff;border:1px solid var(--od-border);border-radius:6px;padding:12px 16px;margin-bottom:14px}
+@media print{nav,.topbar-actions,.btn,.no-print{display:none!important}.topbar{position:static}.card{border:1px solid #ccc;box-shadow:none}body{background:#fff}}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#28a745;color:#fff;padding:12px 26px;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.25);font-size:13px;font-weight:700;z-index:9999;display:none;opacity:0;transition:opacity .3s}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+    <h1>📊 نظام إدارة التكاليف المشتركة</h1>
+    <span class="tab-now" id="tab-now">لوحة التحكم</span>
+    <div class="topbar-actions no-print">
+        <span class="last-save" id="last-save">آخر حفظ: —</span>
+        <button class="btn btn-light btn-sm" onclick="saveNow()">💾 حفظ</button>
+        <button id="btn-recover-v1" class="btn btn-warning btn-sm" style="display:none" onclick="restoreV1Manual()">🔄 استعادة النسخة السابقة</button>
+        <button class="btn btn-light btn-sm" onclick="exportBackup()">📦 نسخة احتياطية</button>
+        <button class="btn btn-light btn-sm" onclick="document.getElementById('backup-file').click()">📂 استعادة</button>
+        <input type="file" id="backup-file" accept=".json" style="display:none" onchange="importBackup(event)">
+    </div>
+</header>
+
+<nav>
+    <button class="active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 لوحة التحكم</button>
+    <button data-tab="projects" onclick="switchTab('projects')">📁 المشاريع</button>
+    <button data-tab="positions" onclick="switchTab('positions')">👤 الوظائف المشتركة</button>
+    <button data-tab="opening" onclick="switchTab('opening')">🗄️ الأرصدة الافتتاحية</button>
+    <button data-tab="rates" onclick="switchTab('rates')">⚖️ النسب المعتمدة</button>
+    <button data-tab="allocation" onclick="switchTab('allocation')">📋 التوزيع الشهري</button>
+    <button data-tab="costs" onclick="switchTab('costs')">🏢 المصروفات الأخرى</button>
+    <button data-tab="reports" onclick="switchTab('reports')">📈 التقارير الشهرية</button>
+</nav>
+
+<div class="container">
+    <section id="dashboard" class="tab-content active"></section>
+    <section id="projects" class="tab-content"></section>
+    <section id="positions" class="tab-content"></section>
+    <section id="opening" class="tab-content"></section>
+    <section id="rates" class="tab-content"></section>
+    <section id="allocation" class="tab-content"></section>
+    <section id="costs" class="tab-content"></section>
+    <section id="reports" class="tab-content"></section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ================================================================
+// 1. البيانات والنسخ الاحتياطي
+// ================================================================
+const STORAGE_KEY = 'costsSystem_v2';
+const LASTSAVE_KEY = 'costsSystem_v2_lastsave';
+
+let state = {
+    initialized:false, v1Migrated:false,
+    projects:[], positions:[], allocations:{}, approvedRates:{},
+    coverageSalaries:{}, coverageRent:{}, coverageOther:{},
+    openingBalances:{version:2,date:'',salaries:{},rent:{},other:{},notes:{},legacySalaries:{}},
+    otherCosts:[],
+    currentMonth:new Date().toISOString().slice(0,7),
+    nextProjId:1,nextPosId:1,nextCostId:1
+};
+let editingProjId=null, editingPosId=null, activeTab='dashboard', toastTimer=null;
+let activeReport=null, reportMonth=null, reportProject=null, reportPosition=null;
+
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+function loadState(){
+    const s=localStorage.getItem(STORAGE_KEY);
+    if(s){try{state=Object.assign(state,JSON.parse(s));}catch(e){console.error(e);}}
+    if(!state.approvedRates)state.approvedRates={};
+    if(!state.coverageSalaries)state.coverageSalaries={};
+    if(!state.coverageRent)state.coverageRent={};
+    if(!state.coverageOther)state.coverageOther={};
+    migrateOpeningBalances();
+    if(state.coverageCount){
+        Object.keys(state.coverageCount).forEach(pid=>{
+            const n=parseInt(state.coverageCount[pid])||0;
+            if(state.coverageRent[pid]===undefined)state.coverageRent[pid]=n;
+            if(state.coverageOther[pid]===undefined)state.coverageOther[pid]=n;
+            if(!state.coverageSalaries[pid])state.coverageSalaries[pid]={};
+            state.positions.forEach(pos=>{
+                if(state.coverageSalaries[pid][pos.id]===undefined)state.coverageSalaries[pid][pos.id]=n;
+            });
+        });
+        delete state.coverageCount; saveState();
+    }
+    if(state.coverageMonths){
+        Object.keys(state.coverageMonths).forEach(k=>{
+            const v=state.coverageMonths[k];
+            const n=Array.isArray(v)?v.length:(parseInt(v)||0);
+            if(n>0&&state.coverageRent[k]===undefined){state.coverageRent[k]=n;state.coverageOther[k]=n;
+                if(!state.coverageSalaries[k])state.coverageSalaries[k]={};
+                state.positions.forEach(pos=>{if(state.coverageSalaries[k][pos.id]===undefined)state.coverageSalaries[k][pos.id]=n;});
+            }
+        });
+        delete state.coverageMonths; saveState();
+    }
+    if(state.rateValidity)delete state.rateValidity;
+    // ⭐ ترحيل بنود المصاريف القديمة: إضافة expected وdistributionActual
+    (state.otherCosts||[]).forEach(c=>{
+        if(c.expected===undefined)c.expected=c.monthly||0;
+        if(!c.distributionActual)c.distributionActual={};
+    });
+    if(!reportMonth)reportMonth=state.currentMonth;
+}
+function migrateOpeningBalances(){
+    const ob=state.openingBalances;
+    if(ob&&ob.version===2)return;
+    const n={version:2,date:'',salaries:{},rent:{},other:{},notes:{},legacySalaries:{}};
+    if(ob&&typeof ob==='object'){
+        Object.keys(ob).forEach(k=>{
+            if(k==='version')return;
+            const o=ob[k];
+            if(!o||typeof o!=='object')return;
+            if(o.date&&!n.date)n.date=o.date;
+            n.rent[k]=parseFloat(o.rent)||0;
+            n.other[k]=parseFloat(o.other)||0;
+            n.notes[k]=o.notes||'';
+            const sal=parseFloat(o.salaries)||0;
+            if(sal>0)n.legacySalaries[k]=(n.legacySalaries[k]||0)+sal;
+        });
+    }
+    state.openingBalances=n; saveState();
+}
+function migrateFromV1(oldData){
+    localStorage.setItem('costsSystem_v2_pre_restore',JSON.stringify(state));
+    state.projects=(oldData.projects||[]).map(p=>({
+        id:p.id,code:p.code||'',nameAr:p.nameAr||p.name||'',nameEn:p.nameEn||'',
+        donor:p.donor||'',startDate:p.startDate||'',endDate:p.endDate||'',
+        budgetSalaries:p.budgetSalaries!==undefined?p.budgetSalaries:(parseFloat(p.budget)||0),
+        budgetRent:parseFloat(p.budgetRent)||0,budgetOther:parseFloat(p.budgetOther)||0,
+        pinnedEnd:!!p.pinnedEnd,status:p.status||'نشط'
+    }));
+    state.positions=oldData.positions||[];
+    state.allocations=oldData.allocations||{};
+    state.otherCosts=(oldData.otherCosts||[]).map(c=>({
+        id:c.id,name:c.name||'',type:c.type||'تشغيلية',
+        monthly:parseFloat(c.monthly)||0,
+        expected:c.expected!==undefined?parseFloat(c.expected):(parseFloat(c.monthly)||0),
+        spent:parseFloat(c.spent)||0,
+        distribution:c.distribution||{},
+        distributionActual:c.distributionActual||{},
+        approved:parseFloat(c.approved)||0
+    }));
+    state.currentMonth=oldData.currentMonth||state.currentMonth;
+    state.nextProjId=Math.max(oldData.nextProjId||1,...state.projects.map(p=>p.id+1),1);
+    state.nextPosId=Math.max(oldData.nextPosId||1,...state.positions.map(p=>p.id+1),1);
+    state.nextCostId=Math.max(oldData.nextCostId||1,...state.otherCosts.map(c=>c.id+1),1);
+    state.initialized=true; state.v1Migrated=true;
+    const m=state.currentMonth, allocs=state.allocations[m]||{};
+    const rates={salaries:{},rent:{},other:{}};
+    state.positions.forEach(pos=>{rates.salaries[pos.id]={};state.projects.forEach(p=>{rates.salaries[pos.id][p.id]=(allocs[pos.id]&&allocs[pos.id][p.id])||0;});});
+    const rT=state.otherCosts.filter(c=>c.type==='إيجار').reduce((s,c)=>s+(c.expected||c.monthly||0),0);
+    const oT=state.otherCosts.filter(c=>c.type!=='إيجار').reduce((s,c)=>s+(c.expected||c.monthly||0),0);
+    state.projects.forEach(p=>{
+        const rl=state.otherCosts.filter(c=>c.type==='إيجار').reduce((s,c)=>s+((c.distribution&&c.distribution[p.id])||0),0);
+        rates.rent[p.id]=rT?+(rl/rT*100).toFixed(2):0;
+        const ol=state.otherCosts.filter(c=>c.type!=='إيجار').reduce((s,c)=>s+((c.distribution&&c.distribution[p.id])||0),0);
+        rates.other[p.id]=oT?+(ol/oT*100).toFixed(2):0;
+    });
+    state.approvedRates[m]=rates;
+    if(!state.coverageSalaries)state.coverageSalaries={};
+    if(!state.coverageRent)state.coverageRent={};
+    if(!state.coverageOther)state.coverageOther={};
+    if(!state.openingBalances||state.openingBalances.version!==2)
+        state.openingBalances={version:2,date:'',salaries:{},rent:{},other:{},notes:{},legacySalaries:{}};
+    saveState();
+}
+function checkV1Data(){
+    const v1Raw=localStorage.getItem('costsSystem');
+    if(v1Raw){
+        document.getElementById('btn-recover-v1').style.display='inline-flex';
+        if(!state.v1Migrated){
+            try{
+                const oldData=JSON.parse(v1Raw);
+                if(oldData&&oldData.projects&&oldData.projects.length>0){
+                    if(confirm('تم العثور على بياناتك من النسخة السابقة!\nهل تريد استعادتها الآن؟')){
+                        migrateFromV1(oldData); alert('✅ تمت الاستعادة بنجاح!');
+                    }else{state.v1Migrated=true;saveState();}
+                }
+            }catch(e){console.error(e);}
+        }
+    }
+}
+function restoreV1Manual(){
+    const v1Raw=localStorage.getItem('costsSystem');
+    if(!v1Raw){alert('لا توجد بيانات محفوظة من النسخة السابقة.');return;}
+    if(confirm('سيتم استعادة البيانات من النسخة الأولى. متابعة؟')){
+        migrateFromV1(JSON.parse(v1Raw)); renderTab(activeTab); alert('✅ تمت الاستعادة بنجاح!');
+    }
+}
+function exportBackup(){
+    saveState();
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`نسخة_احتياطية_التكاليف_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+}
+function importBackup(event){
+    const file=event.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+        try{
+            const imported=JSON.parse(e.target.result);
+            if(!imported.projects||!imported.positions){alert('⚠️ الملف غير صالح!');return;}
+            if(confirm('استعادة هذه النسخة واستبدال البيانات الحالية؟')){
+                state=Object.assign(state,imported);
+                if(!state.approvedRates)state.approvedRates={};
+                if(!state.coverageSalaries)state.coverageSalaries={};
+                if(!state.coverageRent)state.coverageRent={};
+                if(!state.coverageOther)state.coverageOther={};
+                (state.otherCosts||[]).forEach(c=>{
+                    if(c.expected===undefined)c.expected=c.monthly||0;
+                    if(!c.distributionActual)c.distributionActual={};
+                });
+                state.initialized=true; migrateOpeningBalances(); saveState();
+                updateLastSaveLabel(); renderTab(activeTab); alert('✅ تمت الاستعادة بنجاح!');
+            }
+        }catch(err){alert('⚠️ خطأ في قراءة الملف.');}
+        event.target.value='';
+    };
+    reader.readAsText(file);
+}
+function saveNow(){
+    saveState();
+    const t=new Date();
+    const hh=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+    localStorage.setItem(LASTSAVE_KEY,hh); updateLastSaveLabel();
+    showToast('✅ تم الحفظ بنجاح — '+hh);
+}
+function updateLastSaveLabel(){
+    const v=localStorage.getItem(LASTSAVE_KEY);
+    const el=document.getElementById('last-save');
+    if(el)el.textContent='آخر حفظ: '+(v||'—');
+}
+function showToast(msg){
+    const el=document.getElementById('toast');
+    el.textContent=msg; el.style.display='block'; el.style.opacity='1';
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>{el.style.opacity='0';setTimeout(()=>{el.style.display='none';},300);},2500);
+}
+function addSampleData(){
+    if(state.initialized)return;
+    state.projects=[
+        {id:1,code:'P001',nameAr:'مشروع المجموعات الثلاث',nameEn:'Tri-Cluster UNHCR',donor:'UNHCR',startDate:'2025-01-01',endDate:'2025-06-30',budgetSalaries:30000,budgetRent:12000,budgetOther:8000,status:'نشط'},
+        {id:2,code:'P002',nameAr:'مشروع الحماية المتكاملة',nameEn:'YHF 35179 Integrated Protection',donor:'YHF',startDate:'2025-01-01',endDate:'2025-12-31',budgetSalaries:20000,budgetRent:9000,budgetOther:6000,status:'نشط'},
+        {id:3,code:'P003',nameAr:'مشروع الدعم متعدد القطاعات',nameEn:'YHF 34049 Multisectoral',donor:'YHF',startDate:'2025-01-01',endDate:'2025-12-31',budgetSalaries:18000,budgetRent:7000,budgetOther:5000,status:'نشط'},
+        {id:4,code:'P004',nameAr:'مشروع المساعدات المنقذة للحياة',nameEn:'YHF 34609 Life-Saving',donor:'YHF',startDate:'2025-01-01',endDate:'2025-12-31',budgetSalaries:15000,budgetRent:6000,budgetOther:4000,status:'نشط'},
+        {id:5,code:'P005',nameAr:'المصاريف التشغيلية للمنظمة',nameEn:'Organization Operational Costs',donor:'المنظمة',startDate:'2025-01-01',endDate:'2025-12-31',budgetSalaries:0,budgetRent:0,budgetOther:6000,status:'نشط',pinnedEnd:true}
+    ];
+    state.nextProjId=6;
+    state.positions=[
+        {id:1,code:'POS01',name:'Country Director',grade:'A3',salary:2760.62},
+        {id:2,code:'POS02',name:'Programme Manager',grade:'C1',salary:2270.00},
+        {id:3,code:'POS03',name:'Finance Manager',grade:'C1',salary:1808.24},
+        {id:4,code:'POS04',name:'Operations Manager',grade:'A3',salary:2514.20},
+        {id:5,code:'POS05',name:'Admin Manager',grade:'C1',salary:1808.24}
+    ];
+    state.nextPosId=6;
+    state.allocations[state.currentMonth]={1:{1:50,2:40,3:10,4:0,5:0},2:{1:0,2:50,3:50,4:0,5:0},3:{1:0,2:11.65,3:54.4,4:33.85,5:0},4:{1:30,2:21.1,3:22,4:26.9,5:0},5:{1:0,2:50,3:50,4:0,5:0}};
+    state.approvedRates[state.currentMonth]={
+        salaries:{1:{1:50,2:40,3:10,4:0,5:0},2:{1:0,2:50,3:50,4:0,5:0},3:{1:0,2:11.65,3:54.4,4:33.85,5:0},4:{1:30,2:21.1,3:22,4:26.9,5:0},5:{1:0,2:50,3:50,4:0,5:0}},
+        rent:{1:25,2:25,3:25,4:25,5:0},other:{1:25,2:25,3:25,4:25,5:0}};
+    state.coverageSalaries={
+        1:{1:6,2:5,3:4,4:5,5:0},
+        2:{1:5,2:5,3:3,4:4,5:0},
+        3:{1:4,2:3,3:5,4:3,5:0},
+        4:{1:3,2:4,3:3,4:5,5:0},
+        5:{1:0,2:0,3:0,4:0,5:0}
+    };
+    state.coverageRent={1:6,2:5,3:4,4:5,5:12};
+    state.coverageOther={1:5,2:4,3:4,4:3,5:12};
+    state.openingBalances={version:2,date:'2025-04-30',
+        salaries:{1:{1:3450.78,2:2760.62,3:690.16,4:0,5:0},2:{1:0,2:2837.50,3:2837.50,4:0,5:0},3:{1:0,2:526.65,3:2459.20,4:1530.23,5:0},4:{1:1885.65,2:1326.24,3:1382.81,4:1690.79,5:0},5:{1:0,2:2260.30,3:2260.30,4:0,5:0}},
+        rent:{1:1250,2:1250,3:1250,4:1250,5:0},other:{1:625,2:625,3:625,4:625,5:0},notes:{},legacySalaries:{}};
+    state.otherCosts=[
+        {id:1,name:'إيجار المكتب الرئيسي',type:'إيجار',monthly:2000,expected:2000,spent:2000,
+         distribution:{1:500,2:500,3:500,4:500,5:0},distributionActual:{1:500,2:500,3:500,4:500,5:0}},
+        {id:2,name:'المصاريف الأخرى والمختلفة',type:'تشغيلية',monthly:1000,expected:1000,spent:900,
+         distribution:{1:250,2:250,3:250,4:250,5:0},distributionActual:{1:225,2:225,3:225,4:225,5:0}}
+    ];
+    state.nextCostId=3;
+    state.initialized=true; saveState();
+}
+// ================================================================
+// 2. دوال مساعدة
+// ================================================================
+function fmt(n){return '$'+parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fmtPct(n){return parseFloat(n||0).toFixed(2)+'%';}
+function monthName(m){
+    const names=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    const parts=m.split('-');
+    return names[parseInt(parts[1])-1]+' '+parts[0];
+}
+function monthsBetween(d1,d2){
+    if(!d1||!d2)return 0;
+    const a=d1.slice(0,7).split('-'),b=d2.slice(0,7).split('-');
+    const y1=+a[0],m1=+a[1],y2=+b[0],m2=+b[1];
+    if(isNaN(y1)||isNaN(m1)||isNaN(y2)||isNaN(m2))return 0;
+    return Math.max(0,(y2-y1)*12+(m2-m1)+1);
+}
+function getOrderedProjects(){
+    return state.projects.filter(p=>!p.pinnedEnd).concat(state.projects.filter(p=>p.pinnedEnd));
+}
+function moveProject(id,dir){
+    const idx=state.projects.findIndex(p=>p.id===id);
+    if(idx===-1)return;
+    const ni=idx+dir;
+    if(ni<0||ni>=state.projects.length)return;
+    const cur=state.projects[idx],nb=state.projects[ni];
+    if(!!cur.pinnedEnd!==!!nb.pinnedEnd){
+        alert('المشاريع المثبتة (📌) تبقى دائماً في نهاية القائمة.\nأزل التثبيت أولاً إن أردت تغيير موقعه.');
+        return;
+    }
+    state.projects[idx]=nb; state.projects[ni]=cur;
+    saveState(); renderProjects();
+}
+function togglePin(id){
+    const p=state.projects.find(x=>x.id===id); if(!p)return;
+    p.pinnedEnd=!p.pinnedEnd;
+    saveState(); renderProjects();
+    showToast(p.pinnedEnd?'📌 تم تثبيت '+p.code+' في نهاية القائمة':'تم إلغاء تثبيت '+p.code);
+}
+function getCovSal(projId,posId){
+    const v=(state.coverageSalaries[projId]&&state.coverageSalaries[projId][posId]);
+    return (v===undefined||v===null)?0:(parseInt(v)||0);
+}
+function setCovSal(projId,posId,val){
+    if(!state.coverageSalaries[projId])state.coverageSalaries[projId]={};
+    state.coverageSalaries[projId][posId]=parseInt(val)||0;
+    saveState();
+}
+function getCovRent(projId){return parseInt(state.coverageRent[projId])||0;}
+function setCovRent(projId,val){state.coverageRent[projId]=parseInt(val)||0;saveState();}
+function getCovOther(projId){return parseInt(state.coverageOther[projId])||0;}
+function setCovOther(projId,val){state.coverageOther[projId]=parseInt(val)||0;saveState();}
+function covSalAmountPos(projId,posId,rates){
+    const pos=state.positions.find(x=>x.id===posId);
+    if(!pos)return 0;
+    const appr=(rates.salaries[posId]&&rates.salaries[posId][projId])||0;
+    return pos.salary*appr/100*getCovSal(projId,posId);
+}
+function covSalAmountProj(projId,rates){
+    return state.positions.reduce((s,pos)=>s+covSalAmountPos(projId,pos.id,rates),0);
+}
+function expectedCostTotal(type){
+    return state.otherCosts.filter(c=>c.type===type).reduce((s,c)=>s+(c.expected||0),0);
+}
+function covRentAmount(projId,rates){
+    return expectedCostTotal('إيجار')*((rates.rent[projId]||0)/100)*getCovRent(projId);
+}
+function covOtherAmount(projId,rates){
+    return expectedCostTotal('تشغيلية')*((rates.other[projId]||0)/100)*getCovOther(projId);
+}
+function costTypeLabel(t){return t==='إيجار'?'إيجار':'أخرى ومختلفة';}
+function statusBadge(remaining,budget){
+    if(!budget)return '<span class="badge badge-yellow">لا ميزانية</span>';
+    if(remaining<0)return '<span class="badge badge-red">🔴 تجاوز</span>';
+    const used=1-(remaining/budget);
+    if(used>0.9)return '<span class="badge badge-red">🔴 حرج</span>';
+    if(used>0.75)return '<span class="badge badge-yellow">🟡 تحذير</span>';
+    return '<span class="badge badge-green">🟢 آمن</span>';
+}
+function covBadge(expected,actual){
+    if(expected<=0&&actual<=0)return '<span class="badge badge-yellow">لم تُحدد</span>';
+    const diff=actual-expected;
+    if(diff>0.01)return `<span class="badge badge-red">🔴 تجاوز ${fmt(diff)}</span>`;
+    if(Math.abs(diff)<=0.01)return '<span class="badge badge-yellow">🟡 اكتملت</span>';
+    return `<span class="badge badge-green">🟢 متبقٍ ${fmt(-diff)}</span>`;
+}
+function rateStatus(total){
+    if(Math.abs(total-100)<0.01)return '<span class="badge badge-green">✅ 100%</span>';
+    if(total<100)return `<span class="badge badge-yellow">⚠️ فجوة ${fmtPct(100-total)}</span>`;
+    return `<span class="badge badge-red">🔴 تجاوز ${fmtPct(total-100)}</span>`;
+}
+function monthsConsumed(project){
+    const ps=(project.startDate||'').slice(0,7),pe=(project.endDate||'').slice(0,7);
+    return Object.keys(state.allocations).filter(m=>{
+        if(ps&&m<ps)return false;
+        if(pe&&m>pe)return false;
+        const a=state.allocations[m];
+        return state.positions.some(pos=>a[pos.id]&&(a[pos.id][project.id]||0)>0);
+    }).length;
+}
+function getOB(){
+    if(!state.openingBalances||state.openingBalances.version!==2)migrateOpeningBalances();
+    const ob=state.openingBalances;
+    ob.salaries=ob.salaries||{};ob.rent=ob.rent||{};ob.other=ob.other||{};ob.notes=ob.notes||{};ob.legacySalaries=ob.legacySalaries||{};
+    return ob;
+}
+function getOpeningPosProject(posId,projectId){
+    const ob=getOB();
+    return (ob.salaries[posId]&&ob.salaries[posId][projectId])||0;
+}
+function getOpeningSal(projectId){return state.positions.reduce((s,pos)=>s+getOpeningPosProject(pos.id,projectId),0);}
+function getOpeningRent(projectId){return parseFloat(getOB().rent[projectId])||0;}
+function getOpeningOther(projectId){return parseFloat(getOB().other[projectId])||0;}
+function getOpeningTotals(){
+    const t={salaries:0,rent:0,other:0,all:0};
+    state.projects.forEach(p=>{t.salaries+=getOpeningSal(p.id);t.rent+=getOpeningRent(p.id);t.other+=getOpeningOther(p.id);});
+    t.all=t.salaries+t.rent+t.other;
+    return t;
+}
+function getRates(month){
+    if(!state.approvedRates)state.approvedRates={};
+    if(!state.approvedRates[month]){
+        const prev=Object.keys(state.approvedRates).sort().filter(x=>x<month).pop();
+        if(prev){state.approvedRates[month]=JSON.parse(JSON.stringify(state.approvedRates[prev]));}
+        else{
+            const r={salaries:{},rent:{},other:{}};
+            state.positions.forEach(pos=>{r.salaries[pos.id]={};state.projects.forEach(p=>r.salaries[pos.id][p.id]=0);});
+            state.approvedRates[month]=r;
+        }
+        saveState();
+    }
+    const r=state.approvedRates[month];
+    r.salaries=r.salaries||{};r.rent=r.rent||{};r.other=r.other||{};
+    state.positions.forEach(pos=>{
+        if(!r.salaries[pos.id])r.salaries[pos.id]={};
+        state.projects.forEach(p=>{if(r.salaries[pos.id][p.id]===undefined)r.salaries[pos.id][p.id]=0;});
+    });
+    state.projects.forEach(p=>{
+        if(r.rent[p.id]===undefined)r.rent[p.id]=0;
+        if(r.other[p.id]===undefined)r.other[p.id]=0;
+    });
+    return r;
+}
+function cumulativeSalLoaded(){
+    const res={};
+    const projs=getOrderedProjects();
+    projs.forEach(p=>res[p.id]=0);
+    Object.keys(state.allocations).sort().forEach(m=>{
+        const d=getDistribution(m);
+        projs.forEach((p,i)=>{res[p.id]+=d.reduce((s,x)=>s+x.projects[i].amount,0);});
+    });
+    return res;
+}
+// ================================================================
+// 3. التنقل
+// ================================================================
+const TAB_NAMES={dashboard:'لوحة التحكم',projects:'المشاريع',positions:'الوظائف المشتركة',opening:'الأرصدة الافتتاحية',rates:'النسب المعتمدة',allocation:'التوزيع الشهري',costs:'المصروفات الأخرى',reports:'التقارير الشهرية'};
+function switchTab(tab){
+    activeTab=tab;
+    if(tab==='reports')activeReport=null;
+    document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    document.querySelectorAll('nav button').forEach(e=>e.classList.remove('active'));
+    document.querySelector(`nav button[data-tab="${tab}"]`).classList.add('active');
+    document.getElementById('tab-now').textContent=TAB_NAMES[tab]||'';
+    renderTab(tab);
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderTab(tab){
+    const fn={dashboard:renderDashboard,projects:renderProjects,positions:renderPositions,
+              rates:renderRates,opening:renderOpening,allocation:renderAllocation,
+              costs:renderCosts,reports:renderReports};
+    if(fn[tab])fn[tab]();
+}
+// ================================================================
+// 4. حسابات التوزيع
+// ================================================================
+function getDistribution(month){
+    const projects=getOrderedProjects(),positions=state.positions;
+    const pct=state.allocations[month]||{};
+    return positions.map(pos=>{
+        let remaining=pos.salary;
+        const projData=projects.map(proj=>{
+            const p=(pct[pos.id]&&pct[pos.id][proj.id])||0;
+            const amount=pos.salary*p/100;
+            const before=remaining,after=before-amount;
+            remaining=after;
+            return {project:proj,before,percentage:p,amount,after};
+        });
+        const totalLoaded=projData.reduce((s,d)=>s+d.amount,0);
+        return {position:pos,projects:projData,totalLoaded,remaining:pos.salary-totalLoaded};
+    });
+}
+// ⭐ المحمّل الفعلي للمصاريف (من المبالغ الفعلية)
+function getCostLoadedActual(projectId,type){
+    return state.otherCosts.filter(c=>c.type===type)
+        .reduce((s,c)=>s+((c.distributionActual&&c.distributionActual[projectId])||0),0);
+}
+// ⭐ المحمّل المتوقع للمصاريف (من المبالغ المتوقعة)
+function getCostLoadedExpected(projectId,type){
+    return state.otherCosts.filter(c=>c.type===type)
+        .reduce((s,c)=>s+((c.distribution&&c.distribution[projectId])||0),0);
+}
+// ================================================================
+// 5. لوحة التحكم
+// ================================================================
+function renderDashboard(){
+    const proj=getOrderedProjects(),pos=state.positions;
+    const totalSal=pos.reduce((s,p)=>s+p.salary,0);
+    const tBS=proj.reduce((s,p)=>s+(p.budgetSalaries||0),0);
+    const tBR=proj.reduce((s,p)=>s+(p.budgetRent||0),0);
+    const tBO=proj.reduce((s,p)=>s+(p.budgetOther||0),0);
+    const oT=getOpeningTotals();
+    const dist=getDistribution(state.currentMonth);
+    const totalLoaded=dist.reduce((s,d)=>s+d.totalLoaded,0);
+    const gap=totalSal-totalLoaded;
+    const expRent=expectedCostTotal('إيجار'),expOth=expectedCostTotal('تشغيلية');
+    const actRent=state.otherCosts.filter(c=>c.type==='إيجار').reduce((s,c)=>s+(c.spent||0),0);
+    const actOth=state.otherCosts.filter(c=>c.type!=='إيجار').reduce((s,c)=>s+(c.spent||0),0);
+    document.getElementById('dashboard').innerHTML=`
+    <h2 class="main-title">📊 لوحة التحكم - ${monthName(state.currentMonth)}</h2>
+    <div class="stats-grid">
+        <div class="stat-card blue"><div class="stat-value">${proj.length}</div><div class="stat-label">المشاريع المسجلة</div></div>
+        <div class="stat-card green"><div class="stat-value">${pos.length}</div><div class="stat-label">الوظائف المشتركة</div></div>
+        <div class="stat-card yellow"><div class="stat-value">${fmt(totalSal)}</div><div class="stat-label">إجمالي الرواتب الشهرية</div></div>
+        <div class="stat-card ${gap>0.01?'red':'green'}"><div class="stat-value">${fmt(gap)}</div><div class="stat-label">${gap>0.01?'الفجوة غير المغطاة':'التوزيع مكتمل ✅'}</div></div>
+        <div class="stat-card purple"><div class="stat-value">${fmt(oT.all)}</div><div class="stat-label">المصروف الافتتاحي</div></div>
+    </div>
+    <div class="info-box">
+        📌 <strong>سير العمل الشهري:</strong>
+        1️⃣ بداية الشهر: حدد المتوقع للمصاريف في 🏢 والنسب في ⚖️
+        ← 2️⃣ طبّق التوزيع في 📋
+        ← 3️⃣ نهاية الشهر: أدخل الفعلي من المحاسبة في 🏢 واضغط "توزيع الفعلي"
+        ← 4️⃣ راجع التقارير في 📈 ثم ابدأ الشهر التالي
+    </div>
+    <div class="card">
+        <div class="card-title">💵 الميزانيات المعتمدة مقابل المصروف الافتتاحي</div>
+        <table><thead><tr><th>نوع الميزانية</th><th>المعتمد</th><th>الافتتاحي المصروف</th><th>المتاح للتوزيع</th></tr></thead>
+        <tbody>
+        <tr><td>💰 المرتبات</td><td>${fmt(tBS)}</td><td>${fmt(oT.salaries)}</td><td style="color:${tBS-oT.salaries<0?'#dc3545':'#28a745'}"><strong>${fmt(tBS-oT.salaries)}</strong></td></tr>
+        <tr><td>🏢 الإيجار</td><td>${fmt(tBR)}</td><td>${fmt(oT.rent)}</td><td style="color:${tBR-oT.rent<0?'#dc3545':'#28a745'}"><strong>${fmt(tBR-oT.rent)}</strong></td></tr>
+        <tr><td>💡 المصاريف الأخرى والمختلفة</td><td>${fmt(tBO)}</td><td>${fmt(oT.other)}</td><td style="color:${tBO-oT.other<0?'#dc3545':'#28a745'}"><strong>${fmt(tBO-oT.other)}</strong></td></tr>
+        <tr class="total-row"><td>الإجمالي العام</td><td>${fmt(tBS+tBR+tBO)}</td><td>${fmt(oT.all)}</td><td>${fmt(tBS+tBR+tBO-oT.all)}</td></tr>
+        </tbody></table>
+    </div>
+    <div class="card">
+        <div class="card-title">📊 المتوقع والفعلي هذا الشهر (المصاريف والإيجار)</div>
+        <table><thead><tr><th>النوع</th><th>المتوقع (بداية الشهر)</th><th>الفعلي (من المحاسبة)</th><th>الفرق</th></tr></thead>
+        <tbody>
+        <tr><td>🏢 الإيجار</td><td>${fmt(expRent)}</td><td>${fmt(actRent)}</td><td style="color:${actRent-expRent>0.01?'#dc3545':'#28a745'}"><strong>${fmt(actRent-expRent)}</strong></td></tr>
+        <tr><td>💡 المصاريف الأخرى</td><td>${fmt(expOth)}</td><td>${fmt(actOth)}</td><td style="color:${actOth-expOth>0.01?'#dc3545':'#28a745'}"><strong>${fmt(actOth-expOth)}</strong></td></tr>
+        <tr class="total-row"><td>الإجمالي</td><td>${fmt(expRent+expOth)}</td><td>${fmt(actRent+actOth)}</td><td style="color:${actRent+actOth-expRent-expOth>0.01?'#dc3545':'#28a745'}"><strong>${fmt(actRent+actOth-expRent-expOth)}</strong></td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📁 المشاريع</div>
+        <table><thead><tr><th>الكود</th><th>الاسم بالعربي</th><th>الاسم بالإنجليزي</th><th>المانح</th><th>ميز. المرتبات</th><th>ميز. الإيجار</th><th>ميز. أخرى</th><th>الحالة</th></tr></thead>
+        <tbody>
+        ${proj.map(p=>`<tr><td><strong>${p.code}</strong></td><td>${p.nameAr} ${p.pinnedEnd?'📌':''}</td><td style="direction:ltr">${p.nameEn||'-'}</td><td>${p.donor}</td><td>${fmt(p.budgetSalaries)}</td><td>${fmt(p.budgetRent)}</td><td>${fmt(p.budgetOther)}</td><td><span class="badge badge-green">${p.status}</span></td></tr>`).join('')}
+        </tbody></table>
+    </div>`;
+}
+// ================================================================
+// 6. المشاريع
+// ================================================================
+function renderProjects(){
+    const proj=getOrderedProjects();
+    const ep=editingProjId?state.projects.find(x=>x.id===editingProjId):null;
+    let table=`
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📋 المشاريع الحالية <span style="font-size:11px;color:#888">(نموذج الإضافة أسفل الشاشة)</span></div>
+        <table><thead><tr><th>الكود</th><th>العربي</th><th>الإنجليزي</th><th>المانح</th><th>البدء</th><th>الانتهاء</th><th>ميز. المرتبات</th><th>ميز. الإيجار</th><th>ميز. أخرى</th><th>الحالة</th><th>ترتيب وإجراءات</th></tr></thead>
+        <tbody>
+        ${proj.map(p=>`<tr>
+            <td><strong>${p.code}</strong></td>
+            <td style="text-align:right">${p.nameAr} ${p.pinnedEnd?'<span class="badge badge-green">📌 نهاية القائمة</span>':''}</td>
+            <td style="direction:ltr">${p.nameEn||'-'}</td><td>${p.donor}</td>
+            <td>${p.startDate}</td><td>${p.endDate}</td>
+            <td class="budget-cell">${fmt(p.budgetSalaries)}</td>
+            <td class="budget-cell">${fmt(p.budgetRent)}</td>
+            <td class="budget-cell">${fmt(p.budgetOther)}</td>
+            <td><span class="badge ${p.status=='نشط'?'badge-green':'badge-yellow'}">${p.status}</span></td>
+            <td style="white-space:nowrap">
+                <button class="btn btn-gray btn-sm" onclick="moveProject(${p.id},-1)" title="تحريك لأعلى">⬆️</button>
+                <button class="btn btn-gray btn-sm" onclick="moveProject(${p.id},1)" title="تحريك لأسفل">⬇️</button>
+                <button class="btn ${p.pinnedEnd?'btn-success':'btn-gray'} btn-sm" onclick="togglePin(${p.id})" title="تثبيت في نهاية القائمة">📌</button>
+                <button class="btn btn-warning btn-sm" onclick="editProject(${p.id})" title="تعديل">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="delProject(${p.id})" title="حذف">🗑️</button>
+            </td></tr>`).join('')}
+        </tbody></table>
+        <p class="legend">💡 ⬆️⬇️ لترتيب المشاريع • 📌 لتثبيت مشروع في نهاية القائمة (يبقى آخراً حتى مع إضافة مشاريع جديدة).</p>
+    </div>`;
+    let form=`
+    <div class="card ${ep?'edit-highlight':''}" id="proj-form-card">
+        <div class="card-title">${ep?'✏️ تعديل المشروع: '+ep.code:'➕ إضافة مشروع جديد'}</div>
+        <div class="form-row">
+            <div class="form-group" style="max-width:130px"><label>الكود</label><input id="pj-code" placeholder="P006" value="${ep?ep.code:''}"></div>
+            <div class="form-group"><label>اسم المشروع بالعربي</label><input id="pj-nameAr" placeholder="مشروع ..." value="${ep?(ep.nameAr||''):''}"></div>
+            <div class="form-group"><label>اسم المشروع بالإنجليزي</label><input id="pj-nameEn" placeholder="Project Name" style="direction:ltr" value="${ep?(ep.nameEn||''):''}"></div>
+            <div class="form-group" style="max-width:160px"><label>المانح</label><input id="pj-donor" placeholder="UNHCR" value="${ep?(ep.donor||''):''}"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>تاريخ البدء</label><input type="date" id="pj-start" value="${ep?(ep.startDate||''):''}"></div>
+            <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="pj-end" value="${ep?(ep.endDate||''):''}"></div>
+            <div class="form-group"><label>الحالة</label>
+                <select id="pj-status">
+                    <option ${ep&&ep.status=='نشط'?'selected':''}>نشط</option>
+                    <option ${ep&&ep.status=='مكتمل'?'selected':''}>مكتمل</option>
+                    <option ${ep&&ep.status=='موقوف'?'selected':''}>موقوف</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>💰 ميزانية المرتبات</label><input type="number" id="pj-budgetSalaries" step="0.01" value="${ep?ep.budgetSalaries:''}"></div>
+            <div class="form-group"><label>🏢 ميزانية الإيجار</label><input type="number" id="pj-budgetRent" step="0.01" value="${ep?ep.budgetRent:''}"></div>
+            <div class="form-group"><label>💡 ميزانية المصاريف الأخرى والمختلفة</label><input type="number" id="pj-budgetOther" step="0.01" value="${ep?ep.budgetOther:''}"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group" style="flex:3;display:flex;align-items:center;gap:10px">
+                <input type="checkbox" id="pj-pin" style="width:auto;transform:scale(1.3)" ${ep&&ep.pinnedEnd?'checked':''}>
+                <span style="font-size:12.5px">📌 تثبيت في نهاية القائمة (مثل مشروع المصاريف التشغيلية)</span>
+            </div>
+        </div>
+        <div class="actions-row">
+            <button class="btn ${ep?'btn-success':'btn-primary'}" onclick="saveProject()">${ep?'💾 حفظ التعديلات':'➕ إضافة المشروع'}</button>
+            ${ep?`<button class="btn btn-secondary" onclick="cancelEditProject()">❌ إلغاء</button>`:''}
+        </div>
+    </div>`;
+    document.getElementById('projects').innerHTML=`<h2 class="main-title">📁 إدارة المشاريع</h2>${table}${form}`;
+}
+function saveProject(){
+    const code=document.getElementById('pj-code').value.trim();
+    const nameAr=document.getElementById('pj-nameAr').value.trim();
+    const nameEn=document.getElementById('pj-nameEn').value.trim();
+    if(!code||(!nameAr&&!nameEn)){alert('يرجى إدخال الكود واسم المشروع');return;}
+    const pinEl=document.getElementById('pj-pin');
+    const data={
+        code,nameAr:nameAr||nameEn,nameEn,
+        donor:document.getElementById('pj-donor').value.trim(),
+        startDate:document.getElementById('pj-start').value,
+        endDate:document.getElementById('pj-end').value,
+        budgetSalaries:parseFloat(document.getElementById('pj-budgetSalaries').value)||0,
+        budgetRent:parseFloat(document.getElementById('pj-budgetRent').value)||0,
+        budgetOther:parseFloat(document.getElementById('pj-budgetOther').value)||0,
+        pinnedEnd:pinEl?pinEl.checked:false,
+        status:document.getElementById('pj-status').value
+    };
+    if(editingProjId!==null){
+        const idx=state.projects.findIndex(p=>p.id===editingProjId);
+        if(idx!==-1)state.projects[idx]=Object.assign(state.projects[idx],data);
+        editingProjId=null;
+    }else{
+        state.projects.push(Object.assign({id:state.nextProjId++},data));
+    }
+    saveState(); renderProjects(); showToast('💾 تم حفظ بيانات المشروع');
+}
+function editProject(id){editingProjId=id;renderProjects();document.getElementById('proj-form-card').scrollIntoView({behavior:'smooth'});}
+function cancelEditProject(){editingProjId=null;renderProjects();}
+function delProject(id){
+    if(confirm('هل أنت متأكد من حذف هذا المشروع؟')){
+        state.projects=state.projects.filter(p=>p.id!==id);
+        if(state.coverageSalaries)delete state.coverageSalaries[id];
+        if(state.coverageRent)delete state.coverageRent[id];
+        if(state.coverageOther)delete state.coverageOther[id];
+        const ob=state.openingBalances;
+        if(ob){
+            if(ob.rent)delete ob.rent[id];
+            if(ob.other)delete ob.other[id];
+            if(ob.notes)delete ob.notes[id];
+            if(ob.legacySalaries)delete ob.legacySalaries[id];
+            if(ob.salaries)Object.keys(ob.salaries).forEach(pk=>{if(ob.salaries[pk])delete ob.salaries[pk][id];});
+        }
+        if(editingProjId===id)editingProjId=null;
+        saveState(); renderProjects();
+    }
+}
+// ================================================================
+// 7. الوظائف
+// ================================================================
+function renderPositions(){
+    const pos=state.positions;
+    const totalSal=pos.reduce((s,p)=>s+p.salary,0);
+    const ep=editingPosId?pos.find(x=>x.id===editingPosId):null;
+    let table=`
+    <div class="card">
+        <div class="card-title">📋 الوظائف الحالية <span style="font-size:11px;color:#888">(نموذج الإضافة أسفل الشاشة)</span></div>
+        <table><thead><tr><th>الكود</th><th>الوظيفة</th><th>الدرجة</th><th>الراتب الشهري</th><th>إجراءات</th></tr></thead>
+        <tbody>
+        ${pos.map(p=>`<tr><td><strong>${p.code}</strong></td><td>${p.name}</td><td>${p.grade}</td><td>${fmt(p.salary)}</td>
+        <td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="editPosition(${p.id})">✏️</button> <button class="btn btn-danger btn-sm" onclick="delPosition(${p.id})">🗑️</button></td></tr>`).join('')}
+        <tr class="total-row"><td colspan="3">المجموع</td><td>${fmt(totalSal)}</td><td></td></tr>
+        </tbody></table>
+    </div>`;
+    let form=`
+    <div class="card ${ep?'edit-highlight':''}" id="pos-form-card">
+        <div class="card-title">${ep?'✏️ تعديل الوظيفة: '+ep.name:'➕ إضافة وظيفة جديدة'}</div>
+        <div class="form-row">
+            <div class="form-group"><label>الكود</label><input id="ps-code" placeholder="POS06" value="${ep?ep.code:''}"></div>
+            <div class="form-group"><label>اسم الوظيفة</label><input id="ps-name" placeholder="اسم الوظيفة" value="${ep?ep.name:''}"></div>
+            <div class="form-group"><label>الدرجة</label><input id="ps-grade" placeholder="A3" value="${ep?ep.grade:''}"></div>
+            <div class="form-group"><label>الراتب الشهري</label><input type="number" id="ps-salary" step="0.01" value="${ep?ep.salary:''}"></div>
+        </div>
+        <div class="actions-row">
+            <button class="btn ${ep?'btn-success':'btn-primary'}" onclick="savePosition()">${ep?'💾 حفظ التعديلات':'➕ إضافة'}</button>
+            ${ep?`<button class="btn btn-secondary" onclick="cancelEditPosition()">❌ إلغاء</button>`:''}
+        </div>
+    </div>`;
+    document.getElementById('positions').innerHTML=`<h2 class="main-title">👤 إدارة الوظائف المشتركة</h2>${table}${form}`;
+}
+function savePosition(){
+    const code=document.getElementById('ps-code').value.trim();
+    const name=document.getElementById('ps-name').value.trim();
+    const salary=parseFloat(document.getElementById('ps-salary').value)||0;
+    const grade=document.getElementById('ps-grade').value.trim();
+    if(!code||!name||salary<=0){alert('يرجى إدخال جميع البيانات');return;}
+    if(editingPosId!==null){
+        const idx=state.positions.findIndex(p=>p.id===editingPosId);
+        if(idx!==-1)state.positions[idx]=Object.assign(state.positions[idx],{code,name,grade,salary});
+        editingPosId=null;
+    }else{
+        state.positions.push({id:state.nextPosId++,code,name,grade,salary});
+    }
+    saveState(); renderPositions(); showToast('💾 تم حفظ بيانات الوظيفة');
+}
+function editPosition(id){editingPosId=id;renderPositions();document.getElementById('pos-form-card').scrollIntoView({behavior:'smooth'});}
+function cancelEditPosition(){editingPosId=null;renderPositions();}
+function delPosition(id){
+    if(confirm('هل أنت متأكد؟')){
+        state.positions=state.positions.filter(p=>p.id!==id);
+        const ob=getOB();
+        if(ob.salaries[id])delete ob.salaries[id];
+        Object.keys(state.coverageSalaries).forEach(pid=>{if(state.coverageSalaries[pid][id]!==undefined)delete state.coverageSalaries[pid][id];});
+        if(editingPosId===id)editingPosId=null;
+        saveState(); renderPositions();
+    }
+}
+// ================================================================
+// 8. النسب المعتمدة ⚖️
+// ================================================================
+function renderRates(){
+    const month=state.currentMonth;
+    const projects=getOrderedProjects(),positions=state.positions;
+    if(!projects.length||!positions.length){
+        document.getElementById('rates').innerHTML='<div class="card">أضف المشاريع والوظائف أولاً.</div>';
+        return;
+    }
+    const rates=getRates(month);
+    const totalRentM=expectedCostTotal('إيجار');
+    const totalOthM=expectedCostTotal('تشغيلية');
+    let salRows='';
+    positions.forEach(pos=>{
+        const rr=rates.salaries[pos.id]||{};
+        let total=0;
+        const cells=projects.map(p=>{
+            const v=rr[p.id]||0;total+=v;
+            return `<td><input type="number" class="pct-input" value="${v}" step="0.01" onchange="updateRate('salaries',${pos.id},${p.id},this.value)"></td>`;
+        }).join('');
+        salRows+=`<tr><td class="pos-name" title="${pos.name}" style="text-align:right"><strong>${pos.name}</strong> (${pos.grade})</td>${cells}<td><strong>${fmtPct(total)}</strong></td><td>${rateStatus(total)}</td></tr>`;
+    });
+    let salTotals=`<tr class="total-row"><td colspan="2">📊 مجموع النسب لكل مشروع</td>`;
+    projects.forEach(p=>{
+        const t=positions.reduce((s,pos)=>s+((rates.salaries[pos.id]&&rates.salaries[pos.id][p.id])||0),0);
+        salTotals+=`<td>${fmtPct(t)}</td>`;
+    });
+    salTotals+=`<td></td><td></td></tr>`;
+    let covSalRows='';
+    positions.forEach(pos=>{
+        const cells=projects.map(p=>{
+            const v=getCovSal(p.id,pos.id);
+            const amt=covSalAmountPos(p.id,pos.id,rates);
+            return `<td><input type="number" class="num-input" min="0" value="${v}" onchange="setCovSal(${p.id},${pos.id},this.value); renderRates();">${amt>0?`<div class="cell-hint" style="color:#0d6efd">≈ ${fmt(amt)}</div>`:''}</td>`;
+        }).join('');
+        const posTotal=projects.reduce((s,p)=>s+covSalAmountPos(p.id,pos.id,rates),0);
+        covSalRows+=`<tr><td class="pos-name" title="${pos.name}" style="text-align:right"><strong>${pos.name}</strong> <span style="font-size:9px;color:#888">(${fmt(pos.salary)}/شهر)</span></td>${cells}<td><strong>${fmt(posTotal)}</strong></td></tr>`;
+    });
+    let covSalTotals=`<tr class="total-row"><td>📊 إجمالي المبلغ المغطى للمرتبات لكل مشروع</td>`;
+    projects.forEach(p=>{covSalTotals+=`<td>${fmt(covSalAmountProj(p.id,rates))}</td>`;});
+    covSalTotals+=`<td>${fmt(projects.reduce((s,p)=>s+covSalAmountProj(p.id,rates),0))}</td></tr>`;
+    const rentCovCells=projects.map(p=>{
+        const v=getCovRent(p.id);
+        const amt=covRentAmount(p.id,rates);
+        return `<td><input type="number" class="num-input" min="0" value="${v}" onchange="setCovRent(${p.id},this.value); renderRates();">${amt>0?`<div class="cell-hint" style="color:#0d6efd">≈ ${fmt(amt)}</div>`:''}</td>`;
+    }).join('');
+    const othCovCells=projects.map(p=>{
+        const v=getCovOther(p.id);
+        const amt=covOtherAmount(p.id,rates);
+        return `<td><input type="number" class="num-input" min="0" value="${v}" onchange="setCovOther(${p.id},this.value); renderRates();">${amt>0?`<div class="cell-hint" style="color:#0d6efd">≈ ${fmt(amt)}</div>`:''}</td>`;
+    }).join('');
+    const cumSal=cumulativeSalLoaded();
+    const sumRows=projects.map(p=>{
+        const expS=covSalAmountProj(p.id,rates),expR=covRentAmount(p.id,rates),expO=covOtherAmount(p.id,rates);
+        const actS=cumSal[p.id]||0,actR=getCostLoadedActual(p.id,'إيجار'),actO=getCostLoadedActual(p.id,'تشغيلية');
+        return `<tr>
+        <td style="text-align:right"><strong>${p.code}</strong> - ${p.nameAr} ${p.pinnedEnd?'📌':''}</td>
+        <td>${fmt(expS)}</td><td>${fmt(actS)}</td><td>${covBadge(expS,actS)}</td>
+        <td>${fmt(expR)}</td><td>${fmt(actR)}</td><td>${covBadge(expR,actR)}</td>
+        <td>${fmt(expO)}</td><td>${fmt(actO)}</td><td>${covBadge(expO,actO)}</td>
+        <td><strong>${fmt(expS+expR+expO)}</strong></td>
+        <td><strong>${fmt(actS+actR+actO)}</strong></td>
+        <td>${covBadge(expS+expR+expO,actS+actR+actO)}</td></tr>`;
+    }).join('');
+    let rentTotal=0;
+    const rentCells=projects.map(p=>{
+        const v=rates.rent[p.id]||0;rentTotal+=v;
+        return `<td><input type="number" class="pct-input" value="${v}" step="0.01" onchange="updateRate('rent',null,${p.id},this.value)"></td>`;
+    }).join('');
+    const rentExp=projects.map(p=>`<td>${fmt(totalRentM*(rates.rent[p.id]||0)/100)}</td>`).join('');
+    let othTotal=0;
+    const othCells=projects.map(p=>{
+        const v=rates.other[p.id]||0;othTotal+=v;
+        return `<td><input type="number" class="pct-input" value="${v}" step="0.01" onchange="updateRate('other',null,${p.id},this.value)"></td>`;
+    }).join('');
+    const othExp=projects.map(p=>`<td>${fmt(totalOthM*(rates.other[p.id]||0)/100)}</td>`).join('');
+    document.getElementById('rates').innerHTML=`
+    <h2 class="main-title">⚖️ النسب المعتمدة وأشهر التغطية - ${monthName(month)}</h2>
+    <div class="info-box">
+        💡 أدخل <strong>النسب المعتمدة</strong> لشهر العمل الحالي، وحدد <strong>عدد أشهر التغطية</strong> بشكل مستقل:
+        <strong>لكل وظيفة × مشروع</strong> في مصفوفة المرتبات، ولكل مشروع <strong>للإيجار</strong> و<strong>للمصاريف</strong> بشكل منفصل.
+        تحت كل خانة يظهر <strong>المبلغ المغطى المتوقع</strong>. عند إنشاء شهر جديد تُنسخ النسب تلقائياً من الشهر السابق.
+    </div>
+    <div class="card">
+        <div class="actions-row">
+            <div style="min-width:180px"><label style="font-size:12px;color:#6b7280;font-weight:600">شهر العمل الحالي</label><input type="month" value="${month}" onchange="changeMonth(this.value)"></div>
+            <button class="btn btn-warning" onclick="copyRatesPrev()">📋 نسخ النسب من الشهر السابق</button>
+        </div>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📅 أشهر تغطية المرتبات — لكل وظيفة × مشروع <span style="font-size:11px;color:#888">(تحت كل خانة: المبلغ المغطى المتوقع)</span></div>
+        <table class="alloc-table"><thead><tr><th>الوظيفة</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>إجمالي المغطى للوظيفة</th></tr></thead>
+        <tbody>${covSalRows}${covSalTotals}</tbody></table>
+        <p class="legend">💡 المبلغ المغطى = الراتب × النسبة المعتمدة × عدد أشهر التغطية — عدّل عدد الشهور لكل وظيفة حسب اتفاقيتها.</p>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">🏢 أشهر تغطية الإيجار — لكل مشروع <span style="font-size:11px;color:#888">(محسوبة على المتوقع: ${fmt(totalRentM)})</span></div>
+        <table><thead><tr><th>البند</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>الإجمالي</th></tr></thead>
+        <tbody>
+        <tr><td style="text-align:right"><strong>عدد أشهر التغطية</strong></td>${rentCovCells}<td></td></tr>
+        <tr class="total-row"><td style="text-align:right">إجمالي المبلغ المغطى للإيجار</td>${projects.map(p=>`<td>${fmt(covRentAmount(p.id,rates))}</td>`).join('')}<td>${fmt(projects.reduce((s,p)=>s+covRentAmount(p.id,rates),0))}</td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💡 أشهر تغطية المصاريف الأخرى والمختلفة — لكل مشروع <span style="font-size:11px;color:#888">(محسوبة على المتوقع: ${fmt(totalOthM)})</span></div>
+        <table><thead><tr><th>البند</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>الإجمالي</th></tr></thead>
+        <tbody>
+        <tr><td style="text-align:right"><strong>عدد أشهر التغطية</strong></td>${othCovCells}<td></td></tr>
+        <tr class="total-row"><td style="text-align:right">إجمالي المبلغ المغطى للمصاريف</td>${projects.map(p=>`<td>${fmt(covOtherAmount(p.id,rates))}</td>`).join('')}<td>${fmt(projects.reduce((s,p)=>s+covOtherAmount(p.id,rates),0))}</td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💵 ملخص: المغطى المتوقع مقابل المحمّل الفعلي التراكمي <span style="font-size:11px;color:#888">(المرتبات تراكمي دقيق — الإيجار والمصاريف تعكس آخر توزيع فعلي محفوظ)</span></div>
+        <table><thead><tr>
+            <th rowspan="2">المشروع</th>
+            <th colspan="3" class="sub-header">💰 المرتبات</th>
+            <th colspan="3" class="sub-header">🏢 الإيجار</th>
+            <th colspan="3" class="sub-header">💡 المصاريف</th>
+            <th colspan="3" class="sub-header">📊 الإجمالي</th>
+        </tr><tr>
+            ${'<th class="sub-header">متوقع</th><th class="sub-header">فعلي</th><th class="sub-header">الحالة</th>'.repeat(4)}
+        </tr></thead>
+        <tbody>${sumRows}</tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💰 نسب المرتبات المعتمدة (لكل وظيفة × مشروع)</div>
+        <table class="alloc-table"><thead><tr><th>الوظيفة</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>المجموع</th><th>الحالة</th></tr></thead>
+        <tbody>${salRows}${salTotals}</tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">🏢 نسب الإيجار المعتمدة</div>
+        <table><thead><tr><th>البند</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>المجموع</th><th>الحالة</th></tr></thead>
+        <tbody>
+        <tr><td style="text-align:right"><strong>النسبة المعتمدة %</strong></td>${rentCells}<td><strong>${fmtPct(rentTotal)}</strong></td><td>${rateStatus(rentTotal)}</td></tr>
+        <tr><td style="text-align:right">المبلغ المتوقع الشهري</td>${rentExp}<td><strong>${fmt(totalRentM)}</strong></td><td></td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💡 نسب المصاريف الأخرى والمختلفة المعتمدة</div>
+        <table><thead><tr><th>البند</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>المجموع</th><th>الحالة</th></tr></thead>
+        <tbody>
+        <tr><td style="text-align:right"><strong>النسبة المعتمدة %</strong></td>${othCells}<td><strong>${fmtPct(othTotal)}</strong></td><td>${rateStatus(othTotal)}</td></tr>
+        <tr><td style="text-align:right">المبلغ المتوقع الشهري</td>${othExp}<td><strong>${fmt(totalOthM)}</strong></td><td></td></tr>
+        </tbody></table>
+    </div>
+    <div class="card no-print"><button class="btn btn-success" onclick="saveNow()">💾 حفظ كل المدخلات</button></div>`;
+}
+function updateRate(type,posId,projId,val){
+    const m=state.currentMonth;
+    const r=getRates(m);
+    const v=parseFloat(val)||0;
+    if(type==='salaries'){
+        if(!r.salaries[posId])r.salaries[posId]={};
+        r.salaries[posId][projId]=v;
+    }else{
+        r[type][projId]=v;
+    }
+    saveState(); renderRates();
+}
+function copyRatesPrev(){
+    const m=state.currentMonth;
+    const prev=Object.keys(state.approvedRates).sort().filter(x=>x<m).pop();
+    if(!prev){alert('لا يوجد شهر سابق محفوظ');return;}
+    state.approvedRates[m]=JSON.parse(JSON.stringify(state.approvedRates[prev]));
+    saveState(); renderRates();
+    alert('✅ تم النسخ من شهر '+monthName(prev));
+}
+// ================================================================
+// 9. الأرصدة الافتتاحية 🗄️
+// ================================================================
+function renderOpening(){
+    const projects=getOrderedProjects(),positions=state.positions;
+    if(!projects.length){
+        document.getElementById('opening').innerHTML='<div class="card">أضف المشاريع أولاً.</div>';
+        return;
+    }
+    const ob=getOB();
+    let legacyHtml='';
+    const legacyKeys=Object.keys(ob.legacySalaries).filter(k=>(ob.legacySalaries[k]||0)>0);
+    if(legacyKeys.length){
+        const details=legacyKeys.map(k=>{
+            const p=state.projects.find(x=>x.id==k);
+            return `<strong>${p?p.code:'مشروع '+k}</strong>: ${fmt(ob.legacySalaries[k])}`;
+        }).join(' • ');
+        legacyHtml=`<div class="warn-box">⚠️ <strong>أرصدة افتتاحية قديمة للمرتبات غير موزعة على الوظائف:</strong> ${details}<br>وزّعها في المصفوفة أدناه ثم اضغط زر المسح.
+        <button class="btn btn-danger btn-sm" style="margin-right:10px" onclick="clearLegacy()">🗑️ مسح الأرصدة القديمة</button></div>`;
+    }
+    let salRows='';
+    positions.forEach(pos=>{
+        let posTotal=0;
+        const cells=projects.map(p=>{
+            const v=getOpeningPosProject(pos.id,p.id);
+            posTotal+=v;
+            const months=pos.salary?v/pos.salary:0;
+            return `<td><input type="number" class="amt-input" value="${v}" step="0.01" onchange="updateOpeningSal(${pos.id},${p.id},this.value)">${v>0?`<div class="cell-hint" style="color:#0d6efd">≈ ${months.toFixed(2)} شهر</div>`:''}</td>`;
+        }).join('');
+        const posMonths=pos.salary?posTotal/pos.salary:0;
+        salRows+=`<tr><td class="pos-name" title="${pos.name}" style="text-align:right"><strong>${pos.name}</strong> <span style="font-size:9px;color:#888">(${pos.grade})</span></td>${cells}<td><strong>${fmt(posTotal)}</strong>${posTotal>0?`<div class="cell-hint">≈ ${posMonths.toFixed(2)} شهر</div>`:''}</td></tr>`;
+    });
+    let salTotals=`<tr class="total-row"><td>📊 إجمالي المرتبات الافتتاحية لكل مشروع</td>`;
+    let salSum=0;
+    projects.forEach(p=>{const v=getOpeningSal(p.id);salSum+=v;salTotals+=`<td>${fmt(v)}</td>`;});
+    salTotals+=`<td>${fmt(salSum)}</td></tr>`;
+    let salBudgetRow=`<tr><td style="text-align:right">المتبقي من ميزانية المرتبات بعد الافتتاحي</td>`;
+    projects.forEach(p=>{
+        const rem=(p.budgetSalaries||0)-getOpeningSal(p.id);
+        salBudgetRow+=`<td style="color:${rem<0?'#dc3545':'#28a745'}"><strong>${fmt(rem)}</strong></td>`;
+    });
+    salBudgetRow+=`<td></td></tr>`;
+    let rentRow='<tr><td style="text-align:right"><strong>المصروف الافتتاحي للإيجار</strong></td>';
+    projects.forEach(p=>{
+        rentRow+=`<td><input type="number" class="amt-input" value="${getOpeningRent(p.id)}" step="0.01" onchange="updateOpeningProj('rent',${p.id},this.value)"></td>`;
+    });
+    rentRow+='</tr>';
+    let othRow='<tr><td style="text-align:right"><strong>المصروف الافتتاحي للمصاريف الأخرى والمختلفة</strong></td>';
+    projects.forEach(p=>{
+        othRow+=`<td><input type="number" class="amt-input" value="${getOpeningOther(p.id)}" step="0.01" onchange="updateOpeningProj('other',${p.id},this.value)"></td>`;
+    });
+    othRow+='</tr>';
+    let sumRows='';
+    let tB=0,tO=0;
+    projects.forEach(p=>{
+        const os=getOpeningSal(p.id),or_=getOpeningRent(p.id),oo=getOpeningOther(p.id);
+        const total=os+or_+oo;
+        const budget=(p.budgetSalaries||0)+(p.budgetRent||0)+(p.budgetOther||0);
+        tB+=budget;tO+=total;
+        sumRows+=`<tr>
+        <td style="text-align:right"><strong>${p.code}</strong> - ${p.nameAr} ${p.pinnedEnd?'📌':''}</td>
+        <td>${fmt(budget)}</td>
+        <td>${fmt(os)}</td><td>${fmt(or_)}</td><td>${fmt(oo)}</td>
+        <td><strong>${fmt(total)}</strong></td>
+        <td style="color:${budget-total<0?'#dc3545':'#28a745'}"><strong>${fmt(budget-total)}</strong></td>
+        <td><input type="text" class="notes-input" value="${(ob.notes[p.id]||'').replace(/"/g,'&quot;')}" placeholder="ملاحظة" onchange="updateOBNote(${p.id},this.value)"></td>
+        </tr>`;
+    });
+    const sumTotal=`<tr class="total-row"><td>📊 الإجمالي</td><td>${fmt(tB)}</td>
+    <td>${fmt(projects.reduce((s,p)=>s+getOpeningSal(p.id),0))}</td>
+    <td>${fmt(projects.reduce((s,p)=>s+getOpeningRent(p.id),0))}</td>
+    <td>${fmt(projects.reduce((s,p)=>s+getOpeningOther(p.id),0))}</td>
+    <td>${fmt(tO)}</td><td>${fmt(tB-tO)}</td><td></td></tr>`;
+    document.getElementById('opening').innerHTML=`
+    <h2 class="main-title">🗄️ الأرصدة الافتتاحية المصروفة</h2>
+    ${legacyHtml}
+    <div class="info-box">📌 المصاريف الفعلية التي حُمّلت على المشاريع <strong>قبل بدء تطبيق النظام</strong> — تُدخل <strong>مرة واحدة فقط</strong> ويخصمها النظام تلقائياً من ميزانية كل مشروع في كل التقارير.</div>
+    <div class="card">
+        <div class="form-row">
+            <div class="form-group" style="max-width:230px"><label>📅 حتى تاريخ (إغلاق الأرصدة الافتتاحية)</label>
+            <input type="date" value="${ob.date||''}" onchange="updateOBDate(this.value)"></div>
+        </div>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💰 المرتبات الافتتاحية — لكل وظيفة × مشروع <span style="font-size:11px;color:#888">(تحت كل خلية مكافئ الشهور)</span></div>
+        <table class="alloc-table"><thead><tr><th>الوظيفة</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>إجمالي الوظيفة</th></tr></thead>
+        <tbody>${salRows}${salTotals}${salBudgetRow}</tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">🏢 الإيجار الافتتاحي</div>
+        <table><thead><tr><th>البند</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>الإجمالي</th></tr></thead>
+        <tbody>${rentRow}
+        <tr class="total-row"><td style="text-align:right">إجمالي الإيجار الافتتاحي</td>${projects.map(p=>`<td>${fmt(getOpeningRent(p.id))}</td>`).join('')}<td>${fmt(projects.reduce((s,p)=>s+getOpeningRent(p.id),0))}</td></tr>
+        <tr><td style="text-align:right">المتبقي من ميزانية الإيجار</td>${projects.map(p=>{const rem=(p.budgetRent||0)-getOpeningRent(p.id);return `<td style="color:${rem<0?'#dc3545':'#28a745'}"><strong>${fmt(rem)}</strong></td>`;}).join('')}<td></td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💡 المصاريف الأخرى والمختلفة الافتتاحية</div>
+        <table><thead><tr><th>البند</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>الإجمالي</th></tr></thead>
+        <tbody>${othRow}
+        <tr class="total-row"><td style="text-align:right">إجمالي المصاريف الافتتاحية</td>${projects.map(p=>`<td>${fmt(getOpeningOther(p.id))}</td>`).join('')}<td>${fmt(projects.reduce((s,p)=>s+getOpeningOther(p.id),0))}</td></tr>
+        <tr><td style="text-align:right">المتبقي من ميزانية المصاريف</td>${projects.map(p=>{const rem=(p.budgetOther||0)-getOpeningOther(p.id);return `<td style="color:${rem<0?'#dc3545':'#28a745'}"><strong>${fmt(rem)}</strong></td>`;}).join('')}<td></td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">🧮 ملخص الأرصدة الافتتاحية لكل مشروع</div>
+        <table><thead><tr><th>المشروع</th><th>إجمالي الميزانية</th><th>افتتاحي مرتبات</th><th>افتتاحي إيجار</th><th>افتتاحي أخرى</th><th>إجمالي الافتتاحي</th><th>المتبقي بعد الافتتاحي</th><th>ملاحظات</th></tr></thead>
+        <tbody>${sumRows}${sumTotal}</tbody></table>
+    </div>
+    <div class="card no-print"><button class="btn btn-success" onclick="saveNow()">💾 حفظ كل المدخلات</button></div>`;
+}
+function updateOpeningSal(posId,projId,val){
+    const ob=getOB();
+    if(!ob.salaries[posId])ob.salaries[posId]={};
+    ob.salaries[posId][projId]=parseFloat(val)||0;
+    saveState(); renderOpening();
+}
+function updateOpeningProj(field,projId,val){getOB()[field][projId]=parseFloat(val)||0;saveState();renderOpening();}
+function updateOBDate(val){getOB().date=val;saveState();renderOpening();}
+function updateOBNote(projId,val){getOB().notes[projId]=val;saveState();}
+function clearLegacy(){
+    if(confirm('سيتم مسح الأرصدة القديمة غير الموزعة نهائياً. متابعة؟')){getOB().legacySalaries={};saveState();renderOpening();}
+}
+// ================================================================
+// 10. التوزيع الشهري ⭐
+// ================================================================
+function renderAllocation(){
+    const month=state.currentMonth;
+    const projects=getOrderedProjects(),positions=state.positions;
+    if(!projects.length||!positions.length){
+        document.getElementById('allocation').innerHTML='<div class="card">أضف المشاريع والوظائف أولاً.</div>';
+        return;
+    }
+    const rates=getRates(month);
+    const dist=getDistribution(month);
+    const totalSal=positions.reduce((s,p)=>s+p.salary,0);
+    const totalLoaded=dist.reduce((s,d)=>s+d.totalLoaded,0);
+    const gap=totalSal-totalLoaded;
+    const legend=`<p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}${p.pinnedEnd?' 📌':''}`).join(' &nbsp;•&nbsp; ')}</p>`;
+    let h1='<th rowspan="2">الوظيفة</th><th rowspan="2">الدرجة</th><th rowspan="2">الراتب</th>';
+    let h2='';
+    projects.forEach(p=>{
+        h1+=`<th colspan="4" class="sub-header" title="${p.code} - ${p.nameAr}">${p.code}${p.pinnedEnd?'📌':''}</th>`;
+        h2+='<th class="sub-header" title="المتبقي قبل">قبل</th><th class="sub-header" title="النسبة">%</th><th class="sub-header">المبلغ</th><th class="sub-header" title="المتبقي بعد">بعد</th>';
+    });
+    h1+='<th rowspan="2">المحمّل</th><th rowspan="2">المتبقي</th>';
+    let rows='';
+    dist.forEach(d=>{
+        rows+=`<tr><td class="pos-name" title="${d.position.name}"><strong>${d.position.name}</strong></td><td>${d.position.grade}</td><td><strong>${fmt(d.position.salary)}</strong></td>`;
+        d.projects.forEach((pd,i)=>{
+            const appr=(rates.salaries[d.position.id]&&rates.salaries[d.position.id][projects[i].id])||0;
+            const diff=Math.abs(pd.percentage-appr)>0.01;
+            rows+=`<td class="remaining">${fmt(pd.before)}</td>
+            <td><input type="number" class="pct-input" value="${pd.percentage}" min="0" max="100" step="0.01" style="${diff?'border-color:#dc3545;background:#fdf2f3':''}" onchange="updatePct(${d.position.id},${projects[i].id},this.value)">
+            <div class="cell-hint" style="color:${diff?'#dc3545':'#999'}">معتمدة: ${fmtPct(appr)}</div></td>
+            <td class="amount">${fmt(pd.amount)}</td>
+            <td class="remaining">${fmt(pd.after)}</td>`;
+        });
+        rows+=`<td><strong>${fmt(d.totalLoaded)}</strong></td>
+        <td><strong style="color:${Math.abs(d.remaining)>0.01?'#dc3545':'#28a745'}">${fmt(d.remaining)}</strong></td></tr>`;
+    });
+    let totalRow=`<tr class="total-row"><td colspan="3">📊 المجموع</td>`;
+    for(let i=0;i<projects.length;i++){
+        const amt=dist.reduce((s,d)=>s+d.projects[i].amount,0);
+        const pct=dist.reduce((s,d)=>s+d.projects[i].percentage,0);
+        totalRow+=`<td></td><td>${fmtPct(pct)}</td><td>${fmt(amt)}</td><td></td>`;
+    }
+    totalRow+=`<td>${fmt(totalLoaded)}</td><td style="color:${Math.abs(gap)>0.01?'#dc3545':'#28a745'}">${fmt(gap)}</td></tr>`;
+    let cmpRows=projects.map((p,i)=>{
+        const expPct=positions.reduce((s,pos)=>s+((rates.salaries[pos.id]&&rates.salaries[pos.id][p.id])||0),0);
+        const actPct=dist.reduce((s,d)=>s+d.projects[i].percentage,0);
+        const expAmt=positions.reduce((s,pos)=>{const a=(rates.salaries[pos.id]&&rates.salaries[pos.id][p.id])||0;return s+pos.salary*a/100;},0);
+        const actAmt=dist.reduce((s,d)=>s+d.projects[i].amount,0);
+        const d$=actAmt-expAmt;
+        return `<tr><td title="${p.nameAr}"><strong>${p.code}</strong></td>
+        <td>${fmtPct(expPct)}</td><td>${fmtPct(actPct)}</td>
+        <td style="color:${Math.abs(actPct-expPct)>0.01?'#dc3545':'#28a745'}">${fmtPct(actPct-expPct)}</td>
+        <td>${fmt(expAmt)}</td><td>${fmt(actAmt)}</td>
+        <td style="color:${d$>0.01?'#dc3545':(d$<-0.01?'#B8860B':'#28a745')}"><strong>${fmt(d$)}</strong></td>
+        <td>${Math.abs(d$)<0.01?'<span class="badge badge-green">✅ مطابق</span>':(d$>0?'<span class="badge badge-red">أعلى</span>':'<span class="badge badge-yellow">أقل</span>')}</td></tr>`;
+    }).join('');
+    let budgetRows=projects.map((p,i)=>{
+        const o=getOpeningSal(p.id);
+        const loadedMonth=dist.reduce((s,d)=>s+d.projects[i].amount,0);
+        const available=(p.budgetSalaries||0)-o;
+        const remaining=available-loadedMonth;
+        return `<tr><td title="${p.nameAr}"><strong>${p.code}</strong></td>
+        <td>${fmt(p.budgetSalaries||0)}</td><td>${fmt(o)}</td>
+        <td>${fmt(available)}</td><td>${fmt(loadedMonth)}</td>
+        <td style="color:${remaining<0?'#dc3545':'#28a745'}"><strong>${fmt(remaining)}</strong></td>
+        <td>${statusBadge(remaining,p.budgetSalaries)}</td></tr>`;
+    }).join('');
+    document.getElementById('allocation').innerHTML=`
+    <h2 class="main-title">📋 التوزيع الشهري - ${monthName(month)}</h2>
+    <div class="card">
+        <div class="actions-row">
+            <div style="min-width:180px"><label style="font-size:12px;color:#6b7280;font-weight:600">الشهر</label><input type="month" value="${month}" onchange="changeMonth(this.value)"></div>
+            <button class="btn btn-success" onclick="applyApprovedToAllocation()">⚡ تطبيق النسب المعتمدة</button>
+            <button class="btn btn-warning" onclick="copyPcts()">📋 نسخ من الشهر السابق</button>
+            <button class="btn btn-primary" onclick="showProposals()">💡 مقترحات التسريع</button>
+        </div>
+    </div>
+    ${gap>0.01?`<div class="gap-alert"><h3>⚠️ الفجوة الشهرية: ${fmt(gap)}</h3>
+        <p>هذا المبلغ غير مغطى من المشاريع. استخدم مقترحات التسريع لملء الفجوة أو عدّل النسب يدوياً.</p></div>`:''}
+    <div class="card" id="proposals-section" style="display:none"></div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📋 مصفوفة التوزيع <span style="font-size:11px;color:#888">(مرّر الماوس على الرمز للاسم الكامل • النسب الحمراء تخالف المعتمدة)</span></div>
+        <table class="alloc-table"><thead><tr>${h1}</tr><tr>${h2}</tr></thead>
+        <tbody>${rows}${totalRow}</tbody></table>
+        ${legend}
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">⚖️ مقارنة المطبق بالنسب المعتمدة</div>
+        <table><thead><tr><th>المشروع</th><th>نسبة معتمدة</th><th>نسبة مطبقة</th><th>الفرق %</th><th>المتوقع $</th><th>المحمّل $</th><th>الفرق $</th><th>الحالة</th></tr></thead>
+        <tbody>${cmpRows}</tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💵 وضع ميزانية المرتبات (بعد خصم الافتتاحي)</div>
+        <table><thead><tr><th>المشروع</th><th>ميزانية المرتبات</th><th>الافتتاحي المصروف</th><th>المتاح</th><th>محمّل هذا الشهر</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+        <tbody>${budgetRows}</tbody></table>
+    </div>
+    <div class="card">
+        <div class="card-title">📌 المتبقي النهائي</div>
+        <p style="font-size:18px">المتبقي غير الموزع: <strong style="color:${Math.abs(gap)>0.01?'#dc3545':'#28a745'};font-size:24px">${fmt(gap)}</strong>
+        ${Math.abs(gap)<=0.01?' ✅ جميع الرواتب موزعة بالكامل':' ⚠️ يوجد فرق يحتاج توزيع'}</p>
+    </div>
+    <div class="card no-print"><button class="btn btn-success" onclick="saveNow()">💾 حفظ كل المدخلات</button></div>`;
+}
+function applyApprovedToAllocation(){
+    const m=state.currentMonth;
+    const rates=getRates(m);
+    if(!confirm('سيتم استبدال نسب التوزيع الشهري بالنسب المعتمدة. متابعة؟'))return;
+    state.allocations[m]={};
+    state.positions.forEach(pos=>{
+        state.allocations[m][pos.id]={};
+        getOrderedProjects().forEach(p=>{
+            state.allocations[m][pos.id][p.id]=(rates.salaries[pos.id]&&rates.salaries[pos.id][p.id])||0;
+        });
+    });
+    saveState(); renderAllocation(); alert('✅ تم تطبيق النسب المعتمدة');
+}
+function updatePct(posId,projId,val){
+    const m=state.currentMonth;
+    if(!state.allocations[m])state.allocations[m]={};
+    if(!state.allocations[m][posId])state.allocations[m][posId]={};
+    state.allocations[m][posId][projId]=parseFloat(val)||0;
+    saveState(); renderAllocation();
+}
+function changeMonth(m){
+    state.currentMonth=m;
+    if(!state.allocations[m]){
+        const prev=Object.keys(state.allocations).sort().filter(x=>x<m).pop();
+        if(prev)state.allocations[m]=JSON.parse(JSON.stringify(state.allocations[prev]));
+        else state.allocations[m]={};
+    }
+    getRates(m);
+    saveState(); renderTab(activeTab);
+}
+function copyPcts(){
+    const m=state.currentMonth;
+    const prev=Object.keys(state.allocations).sort().filter(x=>x<m).pop();
+    if(!prev){alert('لا يوجد شهر سابق محفوظ');return;}
+    state.allocations[m]=JSON.parse(JSON.stringify(state.allocations[prev]));
+    saveState(); renderAllocation(); alert('✅ تم النسخ من الشهر السابق');
+}
+// ================================================================
+// 11. مقترحات التسريع 💡
+// ================================================================
+function showProposals(){
+    const month=state.currentMonth;
+    const dist=getDistribution(month);
+    const totalSal=state.positions.reduce((s,p)=>s+p.salary,0);
+    const totalLoaded=dist.reduce((s,d)=>s+d.totalLoaded,0);
+    const gap=totalSal-totalLoaded;
+    if(gap<=0.01){alert('لا توجد فجوة - التوزيع مكتمل 100%');return;}
+    const projects=getOrderedProjects();
+    const proposals=[];
+    proposals.push({name:'تسريع نسبي (كل وظيفة تزيد بنفس مساهمتها)',data:dist.map(d=>{
+        const pcts=projects.map((_,i)=>d.projects[i].percentage);
+        const total=pcts.reduce((s,p)=>s+p,0);
+        if(total===0)return {pos:d.position,pcts:projects.map(()=>+(100/projects.length).toFixed(2)),total:100};
+        const mult=100/total;
+        const newPcts=pcts.map(p=>+(p*mult).toFixed(2));
+        return {pos:d.position,pcts:newPcts,total:newPcts.reduce((s,p)=>s+p,0)};
+    })});
+    proposals.push({name:'تسريع حسب الأولوية (المشروع الأول يأخذ الفجوة)',data:dist.map(d=>{
+        const pcts=projects.map((_,i)=>d.projects[i].percentage);
+        const total=pcts.reduce((s,p)=>s+p,0);
+        if(total===0)return {pos:d.position,pcts:projects.map((_,i)=>i===0?100:0),total:100};
+        const newPcts=[...pcts];
+        newPcts[0]=+(newPcts[0]+(100-total)).toFixed(2);
+        return {pos:d.position,pcts:newPcts,total:newPcts.reduce((s,p)=>s+p,0)};
+    })});
+    proposals.push({name:'توزيع متساوٍ (الفجوة مقسومة بالتساوي)',data:dist.map(d=>{
+        const pcts=projects.map((_,i)=>d.projects[i].percentage);
+        const total=pcts.reduce((s,p)=>s+p,0);
+        if(total===0)return {pos:d.position,pcts:projects.map(()=>+(100/projects.length).toFixed(2)),total:100};
+        const add=(100-total)/projects.length;
+        const newPcts=pcts.map(p=>+(p+add).toFixed(2));
+        return {pos:d.position,pcts:newPcts,total:newPcts.reduce((s,p)=>s+p,0)};
+    })});
+    window._proposals=proposals;
+    let html=`<div class="card-title">💡 مقترحات التسريع — الفجوة: ${fmt(gap)}</div>
+    <p style="margin-bottom:12px">راجع المقترحات واختر الأنسب، أو عدّل النسب يدوياً في الجدول:</p>`;
+    proposals.forEach((prop,idx)=>{
+        html+=`<div class="proposal-box"><h3>💡 المقترح ${idx+1}: ${prop.name}</h3>
+        <table><thead><tr><th>الوظيفة</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>المجموع</th></tr></thead>
+        <tbody>${prop.data.map(d=>`<tr><td>${d.pos.name}</td>${d.pcts.map(p=>`<td>${fmtPct(p)}</td>`).join('')}<td><strong>${fmtPct(d.total)}</strong></td></tr>`).join('')}
+        </tbody></table>
+        <button class="btn btn-success" style="margin-top:10px" onclick="applyProposal(${idx})">✅ اعتمد هذا المقترح</button></div>`;
+    });
+    html+=`<button class="btn btn-secondary" onclick="closeProposals()">❌ إغلاق</button>`;
+    const section=document.getElementById('proposals-section');
+    section.innerHTML=html; section.style.display='block';
+    section.scrollIntoView({behavior:'smooth'});
+}
+function applyProposal(idx){
+    const prop=window._proposals[idx];
+    const m=state.currentMonth;
+    if(!state.allocations[m])state.allocations[m]={};
+    prop.data.forEach(d=>{
+        state.allocations[m][d.pos.id]={};
+        getOrderedProjects().forEach((pr,i)=>{state.allocations[m][d.pos.id][pr.id]=d.pcts[i];});
+    });
+    saveState(); closeProposals(); renderAllocation(); alert('✅ تم اعتماد المقترح');
+}
+function closeProposals(){
+    const s=document.getElementById('proposals-section');
+    s.style.display='none'; s.innerHTML='';
+}
+// ================================================================
+// 12. المصروفات الأخرى (متوقع / فعلي / فرق ⭐)
+// ================================================================
+function renderCosts(){
+    const costs=state.otherCosts,projects=getOrderedProjects();
+    const rates=getRates(state.currentMonth);
+    const othersCount=costs.filter(c=>c.type!=='إيجار').length;
+    let rows='';
+    costs.forEach(c=>{
+        if(!c.distribution)c.distribution={};
+        if(!c.distributionActual)c.distributionActual={};
+        const rateKey=c.type==='إيجار'?'rent':'other';
+        const distTotal=projects.reduce((s,p)=>s+(c.distribution[p.id]||0),0);
+        const distActTotal=projects.reduce((s,p)=>s+(c.distributionActual[p.id]||0),0);
+        const expDiff=(c.expected||0)-distTotal;
+        const actDiff=(c.spent||0)-distActTotal;
+        const varDiff=(c.spent||0)-(c.expected||0);
+        rows+=`<tr>
+        <td style="text-align:right"><strong>${c.name}</strong></td>
+        <td>${costTypeLabel(c.type)}</td>
+        <td><input type="number" class="amt-input" value="${c.expected||0}" step="0.01" onchange="updateCostField(${c.id},'expected',this.value)"></td>
+        <td><input type="number" class="amt-input" value="${c.spent||0}" step="0.01" onchange="updateCostField(${c.id},'spent',this.value)"></td>
+        <td style="color:${varDiff>0.01?'#dc3545':(varDiff<-0.01?'#B8860B':'#28a745')}"><strong>${fmt(varDiff)}</strong></td>
+        ${projects.map(p=>{
+            const amt=c.distribution[p.id]||0;
+            const appr=(rates[rateKey]&&rates[rateKey][p.id])||0;
+            const actPct=(c.expected||0)?amt/c.expected*100:0;
+            const diffCell=Math.abs(actPct-appr)>0.05;
+            return `<td><input type="number" class="amt-input" value="${amt}" step="0.01" style="${diffCell?'border-color:#dc3545;background:#fdf2f3':''}" onchange="updateCostDist(${c.id},${p.id},this.value)">
+            <div class="cell-hint" style="color:${diffCell?'#dc3545':'#999'}">معتمدة ${fmtPct(appr)} / فعلية ${fmtPct(actPct)}</div></td>`;
+        }).join('')}
+        <td><strong>${fmt(distTotal)}</strong></td>
+        <td style="color:${Math.abs(expDiff)>0.01?'#dc3545':'#28a745'}"><strong>${fmt(expDiff)}</strong></td>
+        <td><strong>${fmt(distActTotal)}</strong></td>
+        <td style="color:${Math.abs(actDiff)>0.01?'#dc3545':'#28a745'}"><strong>${fmt(actDiff)}</strong></td>
+        <td><button class="btn btn-danger btn-sm" onclick="delCost(${c.id})">🗑️</button></td>
+        </tr>`;
+    });
+    let totalRow=`<tr class="total-row"><td colspan="2">📊 الإجمالي</td>
+    <td>${fmt(costs.reduce((s,c)=>s+(c.expected||0),0))}</td>
+    <td>${fmt(costs.reduce((s,c)=>s+(c.spent||0),0))}</td>
+    <td>${fmt(costs.reduce((s,c)=>s+((c.spent||0)-(c.expected||0)),0))}</td>`;
+    projects.forEach(p=>{
+        const t=costs.reduce((s,c)=>s+((c.distribution&&c.distribution[p.id])||0),0);
+        totalRow+=`<td>${fmt(t)}</td>`;
+    });
+    const tExpDist=costs.reduce((s,c)=>s+projects.reduce((x,p)=>x+((c.distribution&&c.distribution[p.id])||0),0),0);
+    const tActDist=costs.reduce((s,c)=>s+projects.reduce((x,p)=>x+((c.distributionActual&&c.distributionActual[p.id])||0),0),0);
+    totalRow+=`<td>${fmt(tExpDist)}</td><td></td><td>${fmt(tActDist)}</td><td></td><td></td></tr>`;
+    let table=`
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📋 المصروفات وتوزيعها <span style="font-size:11px;color:#888">(نموذج الإضافة أسفل الشاشة)</span></div>
+        <div class="info-box" style="font-size:12px">
+            💡 <strong>طريقة العمل الشهرية:</strong><br>
+            1️⃣ <strong>بداية الشهر:</strong> أدخل "المتوقع" لكل بند (المبلغ المخطط) — ووزّعه على المشاريع حسب النسب المعتمدة (أو يدوياً).<br>
+            2️⃣ <strong>نهاية الشهر:</strong> أدخل "الفعلي" من مخرجات النظام المحاسبي ثم اضغط زر <strong>"توزيع الفعلي بنسب المتوقع"</strong> — سيوزع الفعلي على المشاريع بنفس نسب توزيع المتوقع.<br>
+            3️⃣ عمود "الفرق" (فعلي − متوقع) يكشف التجاوز فوراً.
+        </div>
+        <table><thead><tr>
+            <th>البند</th><th>النوع</th>
+            <th style="background:#dce9f5">المتوقع (بداية الشهر)</th>
+            <th style="background:#dce9f5">الفعلي (من المحاسبة)</th>
+            <th style="background:#dce9f5">الفرق فعلي−متوقع</th>
+            ${projects.map(p=>`<th style="background:#dce9f5" title="${p.nameAr}">${p.code}<br><span style="font-size:9px">توزيع المتوقع</span></th>`).join('')}
+            <th>مجموع توزيع المتوقع</th><th>الفرق التوزيع</th>
+            <th>توزيع الفعلي</th><th>فرق توزيع الفعلي</th>
+            <th></th>
+        </tr></thead>
+        <tbody>${rows}${totalRow}</tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>`;
+    let form=`
+    <div class="card">
+        <div class="card-title">⚡ إجراءات سريعة</div>
+        <div class="actions-row">
+            <button class="btn btn-success" onclick="distributeCostsByRates('إيجار',true)">🏢 وزّع الإيجار المتوقع حسب النسب المعتمدة</button>
+            <button class="btn btn-success" onclick="distributeCostsByRates('تشغيلية',true)">💡 وزّع المصاريف المتوقعة حسب النسب المعتمدة</button>
+            <button class="btn btn-primary" onclick="distributeActualByExpected()">📥 توزيع الفعلي بنسب المتوقع (لجميع البنود)</button>
+            ${othersCount>1?`<button class="btn btn-warning" onclick="mergeOtherCosts()">🧲 دمج بنود المصاريف في بند واحد</button>`:''}
+        </div>
+    </div>
+    <div class="card" id="cost-form-card">
+        <div class="card-title">➕ إضافة مصروف جديد</div>
+        <div class="form-row">
+            <div class="form-group"><label>اسم البند</label><input id="ct-name" placeholder="إيجار المكتب"></div>
+            <div class="form-group"><label>النوع</label><select id="ct-type"><option value="إيجار">إيجار</option><option value="تشغيلية">أخرى ومختلفة</option></select></div>
+            <div class="form-group"><label>المبلغ المتوقع الشهري</label><input type="number" id="ct-monthly" placeholder="2000" step="0.01"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addCost()">➕ إضافة</button>
+    </div>`;
+    document.getElementById('costs').innerHTML=`<h2 class="main-title">🏢 المصروفات الأخرى - ${monthName(state.currentMonth)}</h2>${table}${form}
+    <div class="card no-print"><button class="btn btn-success" onclick="saveNow()">💾 حفظ كل المدخلات</button></div>`;
+}
+function distributeCostsByRates(typeStr,useExpected){
+    const rates=getRates(state.currentMonth);
+    const key=typeStr==='إيجار'?'rent':'other';
+    const r=rates[key]||{};
+    const sum=state.projects.reduce((s,p)=>s+(r[p.id]||0),0);
+    if(sum<=0){alert('حدد النسب المعتمدة أولاً في تبويب (⚖️ النسب المعتمدة)');return;}
+    if(!confirm('سيتم إعادة حساب مبالغ التوزيع المتوقعة لبنود "'+(typeStr==='إيجار'?'الإيجار':'المصاريف الأخرى')+'" حسب النسب المعتمدة. متابعة؟'))return;
+    state.otherCosts.forEach(c=>{
+        if(c.type!==typeStr)return;
+        if(!c.distribution)c.distribution={};
+        state.projects.forEach(p=>{
+            c.distribution[p.id]=+(((c.expected||0)*(r[p.id]||0))/100).toFixed(2);
+        });
+    });
+    saveState(); renderCosts(); alert('✅ تم التوزيع حسب النسب المعتمدة');
+}
+// ⭐ توزيع الفعلي بنسب المتوقع
+function distributeActualByExpected(){
+    if(!confirm('سيتم توزيع المبالغ الفعلية المصروفة على المشاريع بنفس نسب توزيع المبالغ المتوقعة (لجميع البنود). متابعة؟'))return;
+    state.otherCosts.forEach(c=>{
+        if(!c.distributionActual)c.distributionActual={};
+        const base=(c.expected||0);
+        if(base<=0){
+            // إذا لم يوجد متوقع: وزّع بالتساوي حسب توزيع المتوقع إن وجد وإلا بالتساوي
+            const tot=state.projects.reduce((s,p)=>s+(c.distribution[p.id]||0),0);
+            if(tot>0){
+                state.projects.forEach(p=>{
+                    c.distributionActual[p.id]=+(((c.spent||0)*((c.distribution[p.id]||0)/tot)).toFixed(2));
+                });
+            }
+            return;
+        }
+        state.projects.forEach(p=>{
+            const share=((c.distribution[p.id]||0))/base;
+            c.distributionActual[p.id]=+(((c.spent||0)*share).toFixed(2));
+        });
+    });
+    saveState(); renderCosts();
+    showToast('✅ تم توزيع الفعلي بنسب المتوقع — يمكنك الآن تحديد نسب الشهر القادم');
+}
+function mergeOtherCosts(){
+    const others=state.otherCosts.filter(c=>c.type!=='إيجار');
+    if(others.length<=1){alert('لا توجد بنود متعددة للدمج.');return;}
+    const names=others.map(c=>c.name).join(' + ');
+    if(!confirm(`سيتم دمج ${others.length} بنود:\n${names}\n\nفي بند واحد باسم "المصاريف الأخرى والمختلفة". متابعة؟`))return;
+    const sumF=(k)=>others.reduce((s,c)=>s+(parseFloat(c[k])||0),0);
+    const dist={};
+    state.projects.forEach(p=>{dist[p.id]=+(others.reduce((s,c)=>s+((c.distribution&&c.distribution[p.id])||0),0)).toFixed(2);});
+    const distAct={};
+    state.projects.forEach(p=>{distAct[p.id]=+(others.reduce((s,c)=>s+((c.distributionActual&&c.distributionActual[p.id])||0),0)).toFixed(2);});
+    const rentCosts=state.otherCosts.filter(c=>c.type==='إيجار');
+    state.otherCosts=[...rentCosts,{id:state.nextCostId++,name:'المصاريف الأخرى والمختلفة',type:'تشغيلية',
+        monthly:+sumF('monthly').toFixed(2),expected:+sumF('expected').toFixed(2),spent:+sumF('spent').toFixed(2),
+        distribution:dist,distributionActual:distAct}];
+    saveState(); renderCosts(); alert('✅ تم الدمج في بند واحد بنجاح');
+}
+function updateCostDist(id,projId,val){
+    const c=state.otherCosts.find(x=>x.id===id);
+    if(c){
+        if(!c.distribution)c.distribution={};
+        c.distribution[projId]=parseFloat(val)||0;
+        saveState(); renderCosts();
+    }
+}
+function updateCostField(id,field,val){
+    const c=state.otherCosts.find(x=>x.id===id);
+    if(c){c[field]=parseFloat(val)||0;saveState();renderCosts();}
+}
+function addCost(){
+    const name=document.getElementById('ct-name').value.trim();
+    const monthly=parseFloat(document.getElementById('ct-monthly').value)||0;
+    if(!name||monthly<=0){alert('يرجى إدخال البيانات');return;}
+    state.otherCosts.push({id:state.nextCostId++,name,type:document.getElementById('ct-type').value,
+        monthly,expected:monthly,spent:0,distribution:{},distributionActual:{}});
+    saveState(); renderCosts(); showToast('💾 تم إضافة المصروف');
+}
+function delCost(id){
+    if(confirm('هل أنت متأكد؟')){state.otherCosts=state.otherCosts.filter(c=>c.id!==id);saveState();renderCosts();}
+}
+// ================================================================
+// 13. التقارير الشهرية 📈
+// ================================================================
+const REPORTS=[
+    {id:'exec',icon:'📋',name:'الملخص التنفيذي',desc:'نظرة سريعة على الشهر: الإجماليات، الفجوة، المتوقع/الفعلي، والمتبقي التراكمي لكل مشروع.'},
+    {id:'alloc',icon:'💰',name:'توزيع المرتبات الشهري',desc:'مصفوفة التوزيع الكاملة (لكل وظيفة × مشروع) لشهر محدد مع المتبقي قبل وبعد النسبة.'},
+    {id:'rates_cmp',icon:'⚖️',name:'المقارنة بالنسب المعتمدة',desc:'المطبق فعلياً مقابل النسب المعتمدة بالنسبة والمبلغ لكل مشروع ونوع تكلفة.'},
+    {id:'coverage',icon:'📅',name:'التغطية والمبالغ المغطاة',desc:'أشهر التغطية لكل وظيفة ولكل نوع، والمبلغ المغطى المتوقع مقابل المحمّل الفعلي التراكمي.'},
+    {id:'budget',icon:'💵',name:'الميزانيات والمتبقي',desc:'الميزانية المعتمدة مقابل الافتتاحي والمحمّل التراكمي والمتبقي لكل مشروع ولكل نوع تكلفة (كلي تراكمي).'},
+    {id:'trend',icon:'📅',name:'التطور عبر الشهور',desc:'جداول مقارنة لكل الشهور المسجلة: المحمّل شهرياً وتراكمياً لكل مشروع + الفجوات.'},
+    {id:'project',icon:'📁',name:'تقرير مشروع واحد',desc:'كل بيانات مشروع محدد: المعلومات، الأرصدة الافتتاحية وأشهر التغطية، التوزيع عبر الشهور، ووضع الميزانية.'},
+    {id:'position',icon:'👤',name:'تقرير وظيفة واحدة',desc:'توزيع وظيفة محددة على المشاريع: للشهر المحدد وعبر كل الشهور.'},
+    {id:'full',icon:'📊',name:'الملخص التراكمي الكلي',desc:'تقرير شامل من بداية تطبيق النظام: الميزانيات، الافتتاحي، التراكمي، التغطية، وكل الشهور.'}
+];
+function renderReports(){
+    const el=document.getElementById('reports');
+    if(!activeReport){
+        el.innerHTML=`<h2 class="main-title">📈 التقارير الشهرية</h2>
+        <div class="info-box">💡 اختر التقرير المطلوب من البطاقات أدناه — بعض التقارير <strong>جزئية</strong> (شهر محدد أو مشروع أو وظيفة) وبعضها <strong>كلية تراكمية</strong> من بداية تطبيق النظام. كل تقرير قابل للطباعة والتصدير إلى Excel منسق وPDF.</div>
+        <div class="reports-grid">
+        ${REPORTS.map(r=>`<div class="report-card" onclick="openReport('${r.id}')">
+            <div class="ri">${r.icon}</div>
+            <h3>${r.name}</h3>
+            <p>${r.desc}</p>
+            <span class="open-hint">فتح التقرير ◀</span>
+        </div>`).join('')}
+        </div>`;
+        return;
+    }
+    const rep=REPORTS.find(r=>r.id===activeReport);
+    let body='';
+    try{body=REPORT_RENDER[rep.id]?REPORT_RENDER[rep.id]():'';}
+    catch(e){body='<div class="card">حدث خطأ في توليد التقرير — تحقق من البيانات.</div>';}
+    el.innerHTML=`<h2 class="main-title">${rep.icon} ${rep.name}</h2>
+    <div class="report-toolbar no-print">
+        <button class="btn btn-secondary" onclick="backToReports()">◀ رجوع لقائمة التقارير</button>
+        ${rep.desc?`<p style="flex:1;font-size:12px;color:#6b7280;line-height:1.7">${rep.desc}</p>`:''}
+    </div>
+    <div id="report-body">${body}</div>
+    <div class="card no-print actions-row">
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ طباعة</button>
+        <button class="btn btn-primary" onclick="exportReportExcel()">📊 تصدير Excel منسق</button>
+        <button class="btn btn-danger" onclick="exportReportPDF()">📄 تصدير PDF</button>
+    </div>`;
+}
+function openReport(id){activeReport=id;renderReports();window.scrollTo({top:0,behavior:'smooth'});}
+function backToReports(){activeReport=null;renderReports();}
+function rpMonth(){return `<div style="min-width:180px"><label style="font-size:12px;color:#6b7280;font-weight:600">الشهر</label><input type="month" value="${reportMonth}" onchange="setReportMonth(this.value)"></div>`;}
+function rpProject(){
+    const projs=getOrderedProjects();
+    if(!reportProject||!projs.find(p=>p.id==reportProject))reportProject=projs[0]?projs[0].id:null;
+    return `<div style="min-width:220px"><label style="font-size:12px;color:#6b7280;font-weight:600">المشروع</label>
+    <select onchange="setReportProject(this.value)">${projs.map(p=>`<option value="${p.id}" ${p.id==reportProject?'selected':''}>${p.code} - ${p.nameAr}${p.pinnedEnd?' 📌':''}</option>`).join('')}</select></div>`;
+}
+function rpPosition(){
+    const pos=state.positions;
+    if(!reportPosition||!pos.find(p=>p.id==reportPosition))reportPosition=pos[0]?pos[0].id:null;
+    return `<div style="min-width:220px"><label style="font-size:12px;color:#6b7280;font-weight:600">الوظيفة</label>
+    <select onchange="setReportPosition(this.value)">${pos.map(p=>`<option value="${p.id}" ${p.id==reportPosition?'selected':''}>${p.code} - ${p.name}</option>`).join('')}</select></div>`;
+}
+function setReportMonth(v){reportMonth=v||state.currentMonth;renderReports();}
+function setReportProject(v){reportProject=parseInt(v);renderReports();}
+function setReportPosition(v){reportPosition=parseInt(v);renderReports();}
+
+const REPORT_RENDER={
+exec(){
+    const month=reportMonth;
+    const projects=getOrderedProjects(),positions=state.positions;
+    const totalSal=positions.reduce((s,p)=>s+p.salary,0);
+    const dist=getDistribution(month);
+    const salL=projects.map((_,i)=>dist.reduce((s,d)=>s+d.projects[i].amount,0));
+    const rentL=projects.map(p=>getCostLoadedActual(p.id,'إيجار'));
+    const othL=projects.map(p=>getCostLoadedActual(p.id,'تشغيلية'));
+    const cumSal=cumulativeSalLoaded();
+    const totalLoaded=salL.reduce((s,t)=>s+t,0);
+    const gap=totalSal-totalLoaded;
+    const oT=getOpeningTotals();
+    const expRent=expectedCostTotal('إيجار'),actRent=state.otherCosts.filter(c=>c.type==='إيجار').reduce((s,c)=>s+(c.spent||0),0);
+    const expOth=expectedCostTotal('تشغيلية'),actOth=state.otherCosts.filter(c=>c.type!=='إيجار').reduce((s,c)=>s+(c.spent||0),0);
+    let rows=projects.map((p,i)=>{
+        const remAll=(p.budgetSalaries||0)-getOpeningSal(p.id)-cumSal[p.id]
+            +(p.budgetRent||0)-getOpeningRent(p.id)-(rentL[i]||0)
+            +(p.budgetOther||0)-getOpeningOther(p.id)-(othL[i]||0);
+        const totM=salL[i]+rentL[i]+othL[i];
+        return `<tr><td title="${p.nameAr}"><strong>${p.code}</strong></td>
+        <td>${fmt(salL[i])}</td><td>${fmt(rentL[i])}</td><td>${fmt(othL[i])}</td>
+        <td><strong>${fmt(totM)}</strong></td>
+        <td style="color:${remAll<0?'#dc3545':'#28a745'}"><strong>${fmt(remAll)}</strong></td>
+        <td>${statusBadge(remAll,(p.budgetSalaries||0)+(p.budgetRent||0)+(p.budgetOther||0))}</td></tr>`;
+    }).join('');
+    return `
+    <div class="report-toolbar"><div class="actions-row">${rpMonth()}</div></div>
+    <div class="stats-grid">
+        <div class="stat-card yellow"><div class="stat-value">${fmt(totalSal)}</div><div class="stat-label">رواتب الشهر</div></div>
+        <div class="stat-card green"><div class="stat-value">${fmt(totalLoaded)}</div><div class="stat-label">المحمّل على المشاريع</div></div>
+        <div class="stat-card ${gap>0.01?'red':'green'}"><div class="stat-value">${fmt(gap)}</div><div class="stat-label">الفجوة</div></div>
+        <div class="stat-card purple"><div class="stat-value">${fmt(oT.all)}</div><div class="stat-label">الافتتاحي التراكمي</div></div>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">المتوقع والفعلي للمصاريف — ${monthName(month)}</div>
+        <table><thead><tr><th>النوع</th><th>المتوقع</th><th>الفعلي</th><th>الفرق</th></tr></thead>
+        <tbody>
+        <tr><td>🏢 الإيجار</td><td>${fmt(expRent)}</td><td>${fmt(actRent)}</td><td style="color:${actRent-expRent>0.01?'#dc3545':'#28a745'}"><strong>${fmt(actRent-expRent)}</strong></td></tr>
+        <tr><td>💡 المصاريف الأخرى</td><td>${fmt(expOth)}</td><td>${fmt(actOth)}</td><td style="color:${actOth-expOth>0.01?'#dc3545':'#28a745'}"><strong>${fmt(actOth-expOth)}</strong></td></tr>
+        <tr class="total-row"><td>الإجمالي</td><td>${fmt(expRent+expOth)}</td><td>${fmt(actRent+actOth)}</td><td>${fmt(actRent+actOth-expRent-expOth)}</td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">ملخص الشهر (${monthName(month)}) والمتبقي التراكمي</div>
+        <table><thead><tr><th>المشروع</th><th>محمّل مرتبات</th><th>محمّل إيجار (فعلي)</th><th>محمّل مصاريف (فعلي)</th><th>إجمالي الشهر</th><th>المتبقي التراكمي</th><th>الحالة</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+        <p class="legend">💡 المتبقي التراكمي = الميزانيات − الافتتاحي − كل ما حُمّل فعلياً عبر الشهور.</p>
+    </div>`;
+},
+alloc(){
+    const month=reportMonth;
+    const projects=getOrderedProjects(),positions=state.positions;
+    if(!projects.length||!positions.length)return '<div class="card">أضف البيانات أولاً.</div>';
+    const dist=getDistribution(month);
+    const totalSal=positions.reduce((s,p)=>s+p.salary,0);
+    const totalLoaded=dist.reduce((s,d)=>s+d.totalLoaded,0);
+    const gap=totalSal-totalLoaded;
+    let h1='<th rowspan="2">الوظيفة</th><th rowspan="2">الدرجة</th><th rowspan="2">الراتب</th>';
+    let h2='';
+    projects.forEach(p=>{
+        h1+=`<th colspan="4" class="sub-header" title="${p.nameAr}">${p.code}</th>`;
+        h2+='<th class="sub-header">قبل</th><th class="sub-header">%</th><th class="sub-header">المبلغ</th><th class="sub-header">بعد</th>';
+    });
+    h1+='<th rowspan="2">المحمّل</th><th rowspan="2">المتبقي</th>';
+    let rows=dist.map(d=>{
+        let r=`<tr><td style="text-align:right"><strong>${d.position.name}</strong></td><td>${d.position.grade}</td><td><strong>${fmt(d.position.salary)}</strong></td>`;
+        d.projects.forEach(pd=>{
+            r+=`<td class="remaining">${fmt(pd.before)}</td><td>${fmtPct(pd.percentage)}</td><td class="amount">${fmt(pd.amount)}</td><td class="remaining">${fmt(pd.after)}</td>`;
+        });
+        r+=`<td><strong>${fmt(d.totalLoaded)}</strong></td><td style="color:${Math.abs(d.remaining)>0.01?'#dc3545':'#28a745'}"><strong>${fmt(d.remaining)}</strong></td></tr>`;
+        return r;
+    }).join('');
+    let totalRow=`<tr class="total-row"><td colspan="3">📊 المجموع</td>`;
+    for(let i=0;i<projects.length;i++){
+        const amt=dist.reduce((s,d)=>s+d.projects[i].amount,0);
+        const pct=dist.reduce((s,d)=>s+d.projects[i].percentage,0);
+        totalRow+=`<td></td><td>${fmtPct(pct)}</td><td>${fmt(amt)}</td><td></td>`;
+    }
+    totalRow+=`<td>${fmt(totalLoaded)}</td><td>${fmt(gap)}</td></tr>`;
+    return `
+    <div class="report-toolbar"><div class="actions-row">${rpMonth()}
+    ${gap>0.01?`<span class="badge badge-red" style="font-size:13px;padding:6px 14px">⚠️ الفجوة: ${fmt(gap)}</span>`:'<span class="badge badge-green" style="font-size:13px;padding:6px 14px">✅ التوزيع مكتمل</span>'}
+    </div></div>
+    <div class="card" style="overflow-x:auto">
+        <table class="alloc-table"><thead><tr>${h1}</tr><tr>${h2}</tr></thead><tbody>${rows}${totalRow}</tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>`;
+},
+rates_cmp(){
+    const month=reportMonth;
+    const projects=getOrderedProjects(),positions=state.positions;
+    const rates=getRates(month);
+    const dist=getDistribution(month);
+    const totalSal=positions.reduce((s,p)=>s+p.salary,0);
+    const salL=projects.map((_,i)=>dist.reduce((s,d)=>s+d.projects[i].amount,0));
+    const rentL=projects.map(p=>getCostLoadedActual(p.id,'إيجار'));
+    const othL=projects.map(p=>getCostLoadedActual(p.id,'تشغيلية'));
+    const totalRentM=expectedCostTotal('إيجار');
+    const totalOthM=expectedCostTotal('تشغيلية');
+    function cmpR(type,p,appr,act,exp,amt){
+        const dP=act-appr,d$=amt-exp;
+        const badge=Math.abs(d$)<0.01?'<span class="badge badge-green">✅ مطابق</span>':(d$>0?`<span class="badge badge-red">أعلى ${fmtPct(dP)}</span>`:`<span class="badge badge-yellow">أقل ${fmtPct(-dP)}</span>`);
+        return `<tr><td>${type}</td><td title="${p.nameAr}"><strong>${p.code}</strong></td>
+        <td>${fmtPct(appr)}</td><td>${fmtPct(act)}</td>
+        <td style="color:${Math.abs(dP)>0.01?'#dc3545':'#28a745'}">${fmtPct(dP)}</td>
+        <td>${fmt(exp)}</td><td>${fmt(amt)}</td>
+        <td style="color:${d$>0.01?'#dc3545':(d$<-0.01?'#B8860B':'#28a745')}"><strong>${fmt(d$)}</strong></td>
+        <td>${badge}</td></tr>`;
+    }
+    let body='';
+    projects.forEach((p,i)=>{
+        const salAppr=positions.reduce((s,pos)=>s+((rates.salaries[pos.id]&&rates.salaries[pos.id][p.id])||0),0);
+        const salExp=positions.reduce((s,pos)=>{const a=(rates.salaries[pos.id]&&rates.salaries[pos.id][p.id])||0;return s+pos.salary*a/100;},0);
+        body+=cmpR('💰 المرتبات',p,salAppr,totalSal?salL[i]/totalSal*100:0,salExp,salL[i]);
+        const rA=rates.rent[p.id]||0;
+        body+=cmpR('🏢 الإيجار',p,rA,totalRentM?rentL[i]/totalRentM*100:0,totalRentM*rA/100,rentL[i]);
+        const oA=rates.other[p.id]||0;
+        body+=cmpR('💡 المصاريف',p,oA,totalOthM?othL[i]/totalOthM*100:0,totalOthM*oA/100,othL[i]);
+    });
+    return `
+    <div class="report-toolbar"><div class="actions-row">${rpMonth()}</div></div>
+    <div class="card" style="overflow-x:auto">
+        <table><thead><tr><th>النوع</th><th>المشروع</th><th>النسبة المعتمدة</th><th>النسبة الفعلية</th><th>الفرق %</th><th>المتوقع $</th><th>المحمّل $</th><th>الفرق $</th><th>الحالة</th></tr></thead>
+        <tbody>${body}</tbody></table>
+    </div>`;
+},
+coverage(){
+    const projects=getOrderedProjects(),positions=state.positions;
+    const rates=getRates(state.currentMonth);
+    const cumSal=cumulativeSalLoaded();
+    let salRows=positions.map(pos=>{
+        const cells=projects.map(p=>{
+            const v=getCovSal(p.id,pos.id);
+            const amt=covSalAmountPos(p.id,pos.id,rates);
+            return `<td>${v} شهر${amt>0?`<div class="cell-hint" style="color:#0d6efd">≈ ${fmt(amt)}</div>`:''}</td>`;
+        }).join('');
+        const tot=projects.reduce((s,p)=>s+covSalAmountPos(p.id,pos.id,rates),0);
+        return `<tr><td style="text-align:right"><strong>${pos.name}</strong> (${pos.grade})</td>${cells}<td><strong>${fmt(tot)}</strong></td></tr>`;
+    }).join('');
+    let sumRows=projects.map(p=>{
+        const expS=covSalAmountProj(p.id,rates),expR=covRentAmount(p.id,rates),expO=covOtherAmount(p.id,rates);
+        const actS=cumSal[p.id]||0,actR=getCostLoadedActual(p.id,'إيجار'),actO=getCostLoadedActual(p.id,'تشغيلية');
+        return `<tr><td style="text-align:right"><strong>${p.code}</strong> - ${p.nameAr}</td>
+        <td>${fmt(expS)}</td><td>${fmt(actS)}</td><td>${covBadge(expS,actS)}</td>
+        <td>${getCovRent(p.id)} شهر</td>
+        <td>${fmt(expR)}</td><td>${fmt(actR)}</td><td>${covBadge(expR,actR)}</td>
+        <td>${getCovOther(p.id)} شهر</td>
+        <td>${fmt(expO)}</td><td>${fmt(actO)}</td><td>${covBadge(expO,actO)}</td></tr>`;
+    }).join('');
+    return `
+    <div class="info-box">💡 المبلغ المغطى المتوقع = النسبة المعتمدة × المبلغ المتوقع الشهري × عدد أشهر التغطية. المحمّل الفعلي للمرتبات تراكمي دقيق، وللإيجار والمصاريف يعكس آخر توزيع فعلي محفوظ.</div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📅 أشهر تغطية المرتبات لكل وظيفة × مشروع (مع المبلغ المغطى)</div>
+        <table class="alloc-table"><thead><tr><th>الوظيفة</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>إجمالي المغطى</th></tr></thead>
+        <tbody>${salRows}</tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💵 ملخص المبالغ المغطاة المتوقعة مقابل المحمّل الفعلي</div>
+        <table><thead><tr>
+            <th rowspan="2">المشروع</th>
+            <th colspan="3" class="sub-header">💰 المرتبات</th>
+            <th colspan="4" class="sub-header">🏢 الإيجار</th>
+            <th colspan="4" class="sub-header">💡 المصاريف</th>
+        </tr><tr>
+            <th class="sub-header">متوقع</th><th class="sub-header">فعلي</th><th class="sub-header">الحالة</th>
+            <th class="sub-header">أشهر</th><th class="sub-header">متوقع</th><th class="sub-header">فعلي</th><th class="sub-header">الحالة</th>
+            <th class="sub-header">أشهر</th><th class="sub-header">متوقع</th><th class="sub-header">فعلي</th><th class="sub-header">الحالة</th>
+        </tr></thead>
+        <tbody>${sumRows}</tbody></table>
+    </div>`;
+},
+budget(){
+    const projects=getOrderedProjects();
+    const cumSal=cumulativeSalLoaded();
+    const rentL=projects.map(p=>getCostLoadedActual(p.id,'إيجار'));
+    const othL=projects.map(p=>getCostLoadedActual(p.id,'تشغيلية'));
+    function row(label,budgets,loaded,openings){
+        let r=`<tr><td style="text-align:right"><strong>${label}</strong></td>`;
+        budgets.forEach((b,i)=>{
+            const rem=(b||0)-(openings[i]||0)-loaded[i];
+            r+=`<td>${fmt(b||0)}</td><td>${fmt(openings[i]||0)}</td><td>${fmt(loaded[i])}</td><td style="color:${rem<0?'#dc3545':'#28a745'}"><strong>${fmt(rem)}</strong></td><td>${statusBadge(rem,b)}</td>`;
+        });
+        r+=`<td>${fmt(budgets.reduce((s,b)=>s+(b||0),0))}</td><td>${fmt(openings.reduce((s,o)=>s+(o||0),0))}</td><td>${fmt(loaded.reduce((s,l)=>s+l,0))}</td><td></td><td></td></tr>`;
+        return r;
+    }
+    return `
+    <div class="info-box">💡 هذا التقرير <strong>تراكمي كلي</strong> على المبالغ الفعلية. المتبقي = الميزانية − الافتتاحي − المحمّل الفعلي.</div>
+    <div class="card" style="overflow-x:auto">
+        <table><thead><tr>
+            <th rowspan="2">البند</th>
+            ${projects.map(p=>`<th colspan="5" class="sub-header" title="${p.nameAr}">${p.code}${p.pinnedEnd?'📌':''}</th>`).join('')}
+            <th colspan="5" class="sub-header">الإجمالي</th>
+        </tr><tr>
+            ${projects.map(()=>'<th class="sub-header">الميزانية</th><th class="sub-header">الافتتاحي</th><th class="sub-header">المحمّل فعلياً</th><th class="sub-header">المتبقي</th><th class="sub-header">الحالة</th>').join('')}
+            <th class="sub-header">الميزانية</th><th class="sub-header">الافتتاحي</th><th class="sub-header">المحمّل فعلياً</th><th class="sub-header">المتبقي</th><th></th>
+        </tr></thead>
+        <tbody>
+        ${row('💰 المرتبات',projects.map(p=>p.budgetSalaries),projects.map(p=>cumSal[p.id]),projects.map(p=>getOpeningSal(p.id)))}
+        ${row('🏢 الإيجار',projects.map(p=>p.budgetRent),rentL,projects.map(p=>getOpeningRent(p.id)))}
+        ${row('💡 المصاريف الأخرى والمختلفة',projects.map(p=>p.budgetOther),othL,projects.map(p=>getOpeningOther(p.id)))}
+        </tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>`;
+},
+trend(){
+    const projects=getOrderedProjects(),positions=state.positions;
+    const totalSal=positions.reduce((s,p)=>s+p.salary,0);
+    const allMonths=Object.keys(state.allocations).sort();
+    if(!allMonths.length)return '<div class="card">لا توجد أشهر مسجلة بعد.</div>';
+    let rows='',cum=projects.map(()=>0),cumTot=0,cumGap=0;
+    allMonths.forEach(m=>{
+        const d0=getDistribution(m);
+        const cells=projects.map((_,i)=>{
+            const t=d0.reduce((s,d)=>s+d.projects[i].amount,0);
+            cum[i]+=t;
+            return `<td>${fmt(t)}</td><td style="color:#6b7280">${fmt(cum[i])}</td>`;
+        }).join('');
+        const tM=d0.reduce((s,d)=>s+d.totalLoaded,0);
+        const gM=totalSal-tM;
+        cumTot+=tM;cumGap+=gM;
+        rows+=`<tr><td><strong>${monthName(m)}</strong></td>${cells}
+        <td><strong>${fmt(tM)}</strong></td><td>${fmt(cumTot)}</td>
+        <td style="color:${Math.abs(gM)>0.01?'#dc3545':'#28a745'}">${fmt(gM)}</td>
+        <td style="color:${Math.abs(cumGap)>0.01?'#B8860B':'#28a745'}"><strong>${fmt(cumGap)}</strong></td></tr>`;
+    });
+    return `
+    <div class="info-box">💡 لكل شهر: المحمّل الشهري <strong>والتراكمي حتى تاريخه</strong> + الفجوة الشهرية والتراكمية. المرتبات فقط — تاريخية دقيقة.</div>
+    <div class="card" style="overflow-x:auto">
+        <table><thead><tr><th rowspan="2">الشهر</th>${projects.map(p=>`<th colspan="2" class="sub-header" title="${p.nameAr}">${p.code}</th>`).join('')}<th colspan="2" class="sub-header">الإجمالي</th><th rowspan="2">فجوة الشهر</th><th rowspan="2">الفجوة التراكمية</th></tr>
+        <tr>${projects.map(()=>'<th class="sub-header">شهري</th><th class="sub-header">تراكمي</th>').join('')}<th class="sub-header">شهري</th><th class="sub-header">تراكمي</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>`;
+},
+project(){
+    const projects=getOrderedProjects(),positions=state.positions;
+    const p=projects.find(x=>x.id==reportProject);
+    if(!p)return '<div class="card">لا يوجد مشروع.</div>';
+    const months=Object.keys(state.allocations).sort();
+    const rates=getRates(state.currentMonth);
+    const obSal=positions.map(pos=>getOpeningPosProject(pos.id,p.id));
+    const obSalTot=obSal.reduce((s,v)=>s+v,0);
+    const obRent=getOpeningRent(p.id),obOth=getOpeningOther(p.id);
+    let mRows=positions.map(pos=>{
+        const cov=getCovSal(p.id,pos.id);
+        const cells=months.map(m=>{
+            const a=(state.allocations[m][pos.id]&&state.allocations[m][pos.id][p.id])||0;
+            return `<td>${fmt(pos.salary*a/100)}</td>`;
+        }).join('');
+        const tot=months.reduce((s,m)=>{const a=(state.allocations[m][pos.id]&&state.allocations[m][pos.id][p.id])||0;return s+pos.salary*a/100;},0);
+        return `<tr><td style="text-align:right"><strong>${pos.name}</strong></td>
+        <td>${cov} شهر</td>${cells}<td><strong>${fmt(tot)}</strong></td></tr>`;
+    }).join('');
+    let mTot=`<tr class="total-row"><td>📊 إجمالي الشهر</td><td></td>`;
+    const monthTotals=months.map(m=>positions.reduce((s,pos)=>{const a=(state.allocations[m][pos.id]&&state.allocations[m][pos.id][p.id])||0;return s+pos.salary*a/100;},0));
+    monthTotals.forEach(t=>{mTot+=`<td>${fmt(t)}</td>`;});
+    mTot+=`<td>${fmt(monthTotals.reduce((s,t)=>s+t,0))}</td></tr>`;
+    const cumSal=cumulativeSalLoaded()[p.id]||0;
+    const cumRent=getCostLoadedActual(p.id,'إيجار'),cumOth=getCostLoadedActual(p.id,'تشغيلية');
+    const expS=covSalAmountProj(p.id,rates),expR=covRentAmount(p.id,rates),expO=covOtherAmount(p.id,rates);
+    function bRow(label,b,o,l,exp){
+        const rem=(b||0)-(o||0)-l;
+        const covB=exp!==undefined?covBadge(exp,l):'';
+        return `<tr><td style="text-align:right"><strong>${label}</strong></td><td>${fmt(b||0)}</td><td>${fmt(o||0)}</td><td>${fmt(l)}</td><td style="color:${rem<0?'#dc3545':'#28a745'}"><strong>${fmt(rem)}</strong></td><td>${covB}</td></tr>`;
+    }
+    return `
+    <div class="report-toolbar"><div class="actions-row">${rpProject()}</div></div>
+    <div class="card">
+        <div class="card-title">📇 معلومات المشروع والتغطية</div>
+        <table><tbody>
+        <tr><td><strong>الكود</strong></td><td>${p.code}</td><td><strong>العربي</strong></td><td>${p.nameAr}</td><td><strong>الإنجليزي</strong></td><td style="direction:ltr">${p.nameEn||'-'}</td></tr>
+        <tr><td><strong>المانح</strong></td><td>${p.donor}</td><td><strong>البدء</strong></td><td>${p.startDate||'-'}</td><td><strong>الانتهاء</strong></td><td>${p.endDate||'-'}</td></tr>
+        <tr><td><strong>أشهر تغطية الإيجار</strong></td><td>${getCovRent(p.id)} شهر</td><td><strong>أشهر تغطية المصاريف</strong></td><td>${getCovOther(p.id)} شهر</td><td><strong>أشهر مستهلكة فعلياً</strong></td><td>${monthsConsumed(p)}</td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">🗄️ الأرصدة الافتتاحية وأشهر تغطية المرتبات لهذا المشروع</div>
+        <table><thead><tr><th>الوظيفة</th><th>أشهر التغطية</th><th>الافتتاحي المصروف</th></tr></thead>
+        <tbody>
+        ${positions.map((pos,i)=>`<tr><td style="text-align:right">👤 ${pos.name} (${pos.grade})</td><td>${getCovSal(p.id,pos.id)} شهر — <span style="color:#0d6efd">≈ ${fmt(covSalAmountPos(p.id,pos.id,rates))}</span></td><td>${fmt(obSal[i])}</td></tr>`).join('')}
+        <tr class="total-row"><td>الإجمالي</td><td>مغطى مرتبات: ${fmt(expS)}</td><td>${fmt(obSalTot)}</td></tr>
+        <tr><td style="text-align:right">🏢 الإيجار الافتتاحي</td><td></td><td>${fmt(obRent)}</td></tr>
+        <tr><td style="text-align:right">💡 المصاريف الافتتاحية</td><td></td><td>${fmt(obOth)}</td></tr>
+        <tr class="total-row"><td>الإجمالي الافتتاحي</td><td></td><td>${fmt(obSalTot+obRent+obOth)}</td></tr>
+        </tbody></table>
+    </div>
+    ${months.length?`
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📅 المرتبات المحمّلة على هذا المشروع عبر الشهور</div>
+        <table><thead><tr><th>الوظيفة</th><th>تغطية</th>${months.map(m=>`<th>${monthName(m)}</th>`).join('')}<th>الإجمالي</th></tr></thead>
+        <tbody>${mRows}${mTot}</tbody></table>
+    </div>`:'<div class="card">لا توجد أشهر توزيع مسجلة بعد.</div>'}
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💵 وضع الميزانية والتغطية (تراكمي على الفعلي)</div>
+        <table><thead><tr><th>النوع</th><th>الميزانية</th><th>الافتتاحي</th><th>المحمّل فعلياً</th><th>المتبقي</th><th>حالة التغطية</th></tr></thead>
+        <tbody>
+        ${bRow('💰 المرتبات',p.budgetSalaries,obSalTot,cumSal,expS)}
+        ${bRow('🏢 الإيجار',p.budgetRent,obRent,cumRent,expR)}
+        ${bRow('💡 المصاريف الأخرى والمختلفة',p.budgetOther,obOth,cumOth,expO)}
+        <tr class="total-row"><td>الإجمالي</td>
+        <td>${fmt((p.budgetSalaries||0)+(p.budgetRent||0)+(p.budgetOther||0))}</td>
+        <td>${fmt(obSalTot+obRent+obOth)}</td>
+        <td>${fmt(cumSal+cumRent+cumOth)}</td>
+        <td>${fmt((p.budgetSalaries||0)+(p.budgetRent||0)+(p.budgetOther||0)-obSalTot-obRent-obOth-cumSal-cumRent-cumOth)}</td>
+        <td>${covBadge(expS+expR+expO,cumSal+cumRent+cumOth)}</td></tr>
+        </tbody></table>
+    </div>`;
+},
+position(){
+    const positions=state.positions,projects=getOrderedProjects();
+    const pos=positions.find(x=>x.id==reportPosition);
+    if(!pos)return '<div class="card">لا توجد وظيفة.</div>';
+    const month=reportMonth;
+    const rates=getRates(month);
+    const pct=state.allocations[month]||{};
+    const months=Object.keys(state.allocations).sort();
+    let curRows=projects.map(p=>{
+        const pr=(pct[pos.id]&&pct[pos.id][p.id])||0;
+        const appr=(rates.salaries[pos.id]&&rates.salaries[pos.id][p.id])||0;
+        return `<tr><td title="${p.nameAr}"><strong>${p.code}</strong></td>
+        <td>${fmtPct(pr)}</td><td>${fmtPct(appr)}</td>
+        <td>${getCovSal(p.id,pos.id)} شهر</td>
+        <td style="color:${Math.abs(pr-appr)>0.01?'#dc3545':'#28a745'}">${fmtPct(pr-appr)}</td>
+        <td class="amount">${fmt(pos.salary*pr/100)}</td></tr>`;
+    }).join('');
+    const curTotal=projects.reduce((s,p)=>{const pr=(pct[pos.id]&&pct[pos.id][p.id])||0;return s+pos.salary*pr/100;},0);
+    let mRows=months.map(m=>{
+        const cells=projects.map(p=>{
+            const a=(state.allocations[m][pos.id]&&state.allocations[m][pos.id][p.id])||0;
+            return `<td>${fmt(pos.salary*a/100)}</td>`;
+        }).join('');
+        const tot=projects.reduce((s,p)=>{const a=(state.allocations[m][pos.id]&&state.allocations[m][pos.id][p.id])||0;return s+pos.salary*a/100;},0);
+        return `<tr><td><strong>${monthName(m)}</strong></td>${cells}<td><strong>${fmt(tot)}</strong></td></tr>`;
+    }).join('');
+    let mTot=`<tr class="total-row"><td>📊 التراكمي</td>`;
+    projects.forEach(p=>{
+        const tot=months.reduce((s,m)=>{const a=(state.allocations[m][pos.id]&&state.allocations[m][pos.id][p.id])||0;return s+pos.salary*a/100;},0);
+        mTot+=`<td>${fmt(tot)}</td>`;
+    });
+    mTot+=`<td>${fmt(months.reduce((s,m)=>projects.reduce((x,p)=>{const a=(state.allocations[m][pos.id]&&state.allocations[m][pos.id][p.id])||0;return x+pos.salary*a/100;},0),0))}</td></tr>`;
+    return `
+    <div class="report-toolbar"><div class="actions-row">${rpPosition()} ${rpMonth()}</div></div>
+    <div class="card">
+        <div class="card-title">📇 معلومات الوظيفة</div>
+        <table><tbody><tr><td><strong>الكود</strong></td><td>${pos.code}</td><td><strong>الوظيفة</strong></td><td>${pos.name}</td><td><strong>الدرجة</strong></td><td>${pos.grade}</td><td><strong>الراتب الشهري</strong></td><td>${fmt(pos.salary)}</td></tr></tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📊 التوزيع لشهر ${monthName(month)} (مع أشهر التغطية لكل مشروع)</div>
+        <table><thead><tr><th>المشروع</th><th>نسبة مطبقة</th><th>نسبة معتمدة</th><th>أشهر التغطية</th><th>الفرق</th><th>المبلغ المحمّل</th></tr></thead>
+        <tbody>${curRows}
+        <tr class="total-row"><td>الإجمالي المحمّل</td><td></td><td></td><td></td><td></td><td><strong>${fmt(curTotal)}</strong> من ${fmt(pos.salary)}</td></tr>
+        </tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>
+    ${months.length?`
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📅 المحمّل عبر الشهور</div>
+        <table><thead><tr><th>الشهر</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>إجمالي الشهر</th></tr></thead>
+        <tbody>${mRows}${mTot}</tbody></table>
+    </div>`:''}`;
+},
+full(){
+    const projects=getOrderedProjects(),positions=state.positions;
+    const rates=getRates(state.currentMonth);
+    const totalSal=positions.reduce((s,p)=>s+p.salary,0);
+    const cumSal=cumulativeSalLoaded();
+    const rentL=projects.map(p=>getCostLoadedActual(p.id,'إيجار'));
+    const othL=projects.map(p=>getCostLoadedActual(p.id,'تشغيلية'));
+    const oT=getOpeningTotals();
+    const allMonths=Object.keys(state.allocations).sort();
+    let bRows=projects.map((p,i)=>{
+        const b=(p.budgetSalaries||0)+(p.budgetRent||0)+(p.budgetOther||0);
+        const o=getOpeningSal(p.id)+getOpeningRent(p.id)+getOpeningOther(p.id);
+        const l=cumSal[p.id]+rentL[i]+othL[i];
+        const rem=b-o-l;
+        return `<tr><td style="text-align:right"><strong>${p.code}</strong> - ${p.nameAr} ${p.pinnedEnd?'📌':''}</td>
+        <td>${fmt(b)}</td><td>${fmt(o)}</td><td>${fmt(l)}</td>
+        <td style="color:${rem<0?'#dc3545':'#28a745'}"><strong>${fmt(rem)}</strong></td>
+        <td>${statusBadge(rem,b)}</td></tr>`;
+    }).join('');
+    const totB=projects.reduce((s,p)=>s+(p.budgetSalaries||0)+(p.budgetRent||0)+(p.budgetOther||0),0);
+    const totO=oT.all;
+    const totL=Object.values(cumSal).reduce((s,v)=>s+v,0)+rentL.reduce((s,v)=>s+v,0)+othL.reduce((s,v)=>s+v,0);
+    const covRows=projects.map(p=>{
+        const expS=covSalAmountProj(p.id,rates),expR=covRentAmount(p.id,rates),expO=covOtherAmount(p.id,rates);
+        const actS=cumSal[p.id]||0,actR=rentL[projects.indexOf(p)],actO=othL[projects.indexOf(p)];
+        return `<tr><td style="text-align:right"><strong>${p.code}</strong></td>
+        <td>${fmt(expS)}</td><td>${fmt(actS)}</td><td>${covBadge(expS,actS)}</td>
+        <td>${getCovRent(p.id)}</td><td>${fmt(expR)}</td><td>${fmt(actR)}</td><td>${covBadge(expR,actR)}</td>
+        <td>${getCovOther(p.id)}</td><td>${fmt(expO)}</td><td>${fmt(actO)}</td><td>${covBadge(expO,actO)}</td></tr>`;
+    }).join('');
+    let tRows='';
+    allMonths.forEach(m=>{
+        const d0=getDistribution(m);
+        const cells=projects.map((_,i)=>`<td>${fmt(d0.reduce((s,d)=>s+d.projects[i].amount,0))}</td>`).join('');
+        const tM=d0.reduce((s,d)=>s+d.totalLoaded,0);
+        tRows+=`<tr><td><strong>${monthName(m)}</strong></td>${cells}<td><strong>${fmt(tM)}</strong></td><td style="color:${Math.abs(totalSal-tM)>0.01?'#dc3545':'#28a745'}">${fmt(totalSal-tM)}</td></tr>`;
+    });
+    return `
+    <div class="info-box">💡 <strong>التقرير الشامل الكلي</strong> — الميزانيات التراكمي على الفعلي، التغطية لكل نوع، وكل الشهور المسجلة.</div>
+    <div class="stats-grid">
+        <div class="stat-card blue"><div class="stat-value">${fmt(totB)}</div><div class="stat-label">إجمالي الميزانيات</div></div>
+        <div class="stat-card purple"><div class="stat-value">${fmt(totO)}</div><div class="stat-label">إجمالي الافتتاحي</div></div>
+        <div class="stat-card green"><div class="stat-value">${fmt(totL)}</div><div class="stat-label">إجمالي المحمّل فعلياً</div></div>
+        <div class="stat-card ${totB-totO-totL<0?'red':'green'}"><div class="stat-value">${fmt(totB-totO-totL)}</div><div class="stat-label">المتبقي الكلي</div></div>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">💵 وضع الميزانيات التراكمي (كل الأنواع — فعلي)</div>
+        <table><thead><tr><th>المشروع</th><th>الميزانية</th><th>الافتتاحي</th><th>المحمّل فعلياً</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+        <tbody>${bRows}
+        <tr class="total-row"><td>📊 الإجمالي</td><td>${fmt(totB)}</td><td>${fmt(totO)}</td><td>${fmt(totL)}</td><td>${fmt(totB-totO-totL)}</td><td></td></tr>
+        </tbody></table>
+    </div>
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📅 التغطية والمبالغ المغطاة لكل نوع</div>
+        <table><thead><tr>
+            <th rowspan="2">المشروع</th>
+            <th colspan="3" class="sub-header">💰 المرتبات</th>
+            <th colspan="4" class="sub-header">🏢 الإيجار</th>
+            <th colspan="4" class="sub-header">💡 المصاريف</th>
+        </tr><tr>
+            <th class="sub-header">متوقع</th><th class="sub-header">فعلي</th><th class="sub-header">الحالة</th>
+            <th class="sub-header">أشهر</th><th class="sub-header">متوقع</th><th class="sub-header">فعلي</th><th class="sub-header">الحالة</th>
+            <th class="sub-header">أشهر</th><th class="sub-header">متوقع</th><th class="sub-header">فعلي</th><th class="sub-header">الحالة</th>
+        </tr></thead>
+        <tbody>${covRows}</tbody></table>
+    </div>
+    ${allMonths.length?`
+    <div class="card" style="overflow-x:auto">
+        <div class="card-title">📅 كل الشهور المسجلة (المرتبات)</div>
+        <table><thead><tr><th>الشهر</th>${projects.map(p=>`<th title="${p.nameAr}">${p.code}</th>`).join('')}<th>إجمالي الشهر</th><th>الفجوة</th></tr></thead>
+        <tbody>${tRows}</tbody></table>
+        <p class="legend">🔤 <b>دليل الرموز:</b> ${projects.map(p=>`<b>${p.code}</b> = ${p.nameAr}`).join(' &nbsp;•&nbsp; ')}</p>
+    </div>`:''}`;
+}
+};
+// ================================================================
+// 14. التصدير المنسق (Excel + PDF) ⭐
+// ================================================================
+function cleanCloneForExport(srcEl) {
+    const clone = srcEl.cloneNode(true);
+    // تحويل inputs إلى نص
+    clone.querySelectorAll('input').forEach(inp => {
+        const span = document.createElement('span');
+        let v = inp.value || '';
+        if (inp.type === 'checkbox') v = inp.checked ? '✓' : '✗';
+        span.textContent = v;
+        span.style.fontWeight = '600';
+        if (inp.parentNode) inp.parentNode.replaceChild(span, inp);
+    });
+    clone.querySelectorAll('select').forEach(sel => {
+        const span = document.createElement('span');
+        span.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+        if (sel.parentNode) sel.parentNode.replaceChild(span, sel);
+    });
+    // إزالة عناصر لا تصلح للتصدير
+    clone.querySelectorAll('.no-print,.btn,button').forEach(e => e.remove());
+    clone.querySelectorAll('.cell-hint').forEach(e => e.remove());
+    clone.querySelectorAll('.badge').forEach(b => {
+        b.outerHTML = b.textContent.replace(/[🔴🟡🟢✅⚠️📌]/g,'').trim();
+    });
+    return clone;
+}
+function buildExportHTML(sourceSelector, title) {
+    const src = document.querySelector(sourceSelector);
+    if (!src || !src.innerHTML.trim()) return null;
+    let html = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">';
+    html += '<title>' + title + '</title><style>';
+    html += 'body{font-family:Arial,Tahoma;padding:20px;direction:rtl}';
+    html += 'h1{color:#017E84;font-size:18px;border-bottom:3px solid #017E84;padding-bottom:8px}';
+    html += 'h2{color:#3d434d;font-size:14px;margin:18px 0 6px}';
+    html += '.exp-meta{color:#666;font-size:12px;margin-bottom:14px}';
+    html += 'table{border-collapse:collapse;width:100%;font-family:Arial;font-size:11px;margin-bottom:18px}';
+    html += 'th{background:#017E84;color:#fff;border:1px solid #7a9ca0;padding:6px 5px;font-weight:bold;text-align:center}';
+    html += 'td{border:1px solid #b9c8ca;padding:5px;text-align:center;font-size:11px}';
+    html += 'tr:nth-child(even) td{background:#f6f9f9}';
+    html += '.total-row td{background:#e0ecee!important;font-weight:bold}';
+    html += '.sub-header{background:#dce9f5!important;color:#1e3a5f;font-weight:bold}';
+    html += '.amount{background:#d1e7dd;font-weight:bold}';
+    html += '.remaining{background:#f4f6f8}';
+    html += '.pos-name{max-width:120px}';
+    html += '@media print{body{padding:5px}h1{font-size:16px}}';
+    html += '</style></head><body>';
+    html += '<h1>' + title + '</h1>';
+    html += '<div class="exp-meta">نظام إدارة التكاليف المشتركة — الشهر: ' + monthName(state.currentMonth) + ' — تاريخ التصدير: ' + new Date().toLocaleDateString('ar') + '</div>';
+    const clone = cleanCloneForExport(src);
+    html += clone.innerHTML;
+    html += '</body></html>';
+    return html;
+}
+// ⭐ تصدير Excel منسق (ملف .xls يفتح Excel بجداول منسقة حقيقية)
+function exportExcelFrom(sourceSelector, title, filename) {
+    const html = buildExportHTML(sourceSelector, title);
+    if (!html) { alert('لا يوجد محتوى للتصدير.'); return; }
+    const blob = new Blob(['\uFEFF' + html], {type:'application/vnd.ms-excel;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename + '.xls';
+    a.click();
+    showToast('📊 تم تصدير Excel منسق — افتحه في Excel مباشرة');
+}
+// ⭐ تصدير PDF عبر نافذة طباعة منسقة
+function exportPDFFrom(sourceSelector, title, filename) {
+    const html = buildExportHTML(sourceSelector, title);
+    if (!html) { alert('لا يوجد محتوى للتصدير.'); return; }
+    const w = window.open('', '_blank');
+    if (!w) { alert('يرجى السماح بالنوافذ المنبثقة لتصدير PDF.'); return; }
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => {
+        w.focus();
+        w.print();
+        showToast('📄 في نافذة الطباعة اختر "حفظ كـ PDF"');
+    }, 500);
+}
+function exportReportExcel(){
+    const rep=REPORTS.find(r=>r.id===activeReport);
+    exportExcelFrom('#report-body', rep?rep.name:'تقرير', 'تقرير_'+(rep?rep.name:'')+'_'+(reportMonth||state.currentMonth));
+}
+function exportReportPDF(){
+    const rep=REPORTS.find(r=>r.id===activeReport);
+    exportPDFFrom('#report-body', rep?rep.name:'تقرير', 'تقرير_'+(rep?rep.name:''));
+}
+// ================================================================
+// 15. التهيئة
+// ================================================================
+function init(){
+    loadState();
+    checkV1Data();
+    addSampleData();
+    if(!reportMonth)reportMonth=state.currentMonth;
+    const projs=getOrderedProjects();
+    if(!reportProject&&projs.length)reportProject=projs[0].id;
+    if(!reportPosition&&state.positions.length)reportPosition=state.positions[0].id;
+    updateLastSaveLabel();
+    switchTab('dashboard');
+}
+window.onload=init;
+</script>
+</body>
+</html>
+```
